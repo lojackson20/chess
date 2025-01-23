@@ -59,13 +59,6 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        // make whole board null with 2 for loops
-//        for (int i = 0; i < 8; i++){
-//            for (int j = 0; j < 8; j++){
-//                myChessBoard[i][j] = new ChessPiece(null, null);
-//            }
-//        }
-        // use add piece or what im doing
 
         //bottom white row
         myChessBoard[0][0] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK);
@@ -86,46 +79,6 @@ public class ChessBoard {
         myChessBoard[1][5] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
         myChessBoard[1][6] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
         myChessBoard[1][7] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
-
-        // blank space
-//        myChessBoard[2][0] = new ChessPiece(null, null);
-//        myChessBoard[2][1] = new ChessPiece(null, null);
-//        myChessBoard[2][2] = new ChessPiece(null, null);
-//        myChessBoard[2][3] = new ChessPiece(null, null);
-//        myChessBoard[2][4] = new ChessPiece(null, null);
-//        myChessBoard[2][5] = new ChessPiece(null, null);
-//        myChessBoard[2][6] = new ChessPiece(null, null);
-//        myChessBoard[2][7] = new ChessPiece(null, null);
-//
-//        // Blank space
-//        myChessBoard[3][0] = new ChessPiece(null, null);
-//        myChessBoard[3][1] = new ChessPiece(null, null);
-//        myChessBoard[3][2] = new ChessPiece(null, null);
-//        myChessBoard[3][3] = new ChessPiece(null, null);
-//        myChessBoard[3][4] = new ChessPiece(null, null);
-//        myChessBoard[3][5] = new ChessPiece(null, null);
-//        myChessBoard[3][6] = new ChessPiece(null, null);
-//        myChessBoard[3][7] = new ChessPiece(null, null);
-//
-//        // More blank space
-//        myChessBoard[4][0] = new ChessPiece(null, null);
-//        myChessBoard[4][1] = new ChessPiece(null, null);
-//        myChessBoard[4][2] = new ChessPiece(null, null);
-//        myChessBoard[4][3] = new ChessPiece(null, null);
-//        myChessBoard[4][4] = new ChessPiece(null, null);
-//        myChessBoard[4][5] = new ChessPiece(null, null);
-//        myChessBoard[4][6] = new ChessPiece(null, null);
-//        myChessBoard[4][7] = new ChessPiece(null, null);
-//
-//        // last blank space
-//        myChessBoard[5][0] = new ChessPiece(null, null);
-//        myChessBoard[5][1] = new ChessPiece(null, null);
-//        myChessBoard[5][2] = new ChessPiece(null, null);
-//        myChessBoard[5][3] = new ChessPiece(null, null);
-//        myChessBoard[5][4] = new ChessPiece(null, null);
-//        myChessBoard[5][5] = new ChessPiece(null, null);
-//        myChessBoard[5][6] = new ChessPiece(null, null);
-//        myChessBoard[5][7] = new ChessPiece(null, null);
 
         //black pawns
         myChessBoard[6][0] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
