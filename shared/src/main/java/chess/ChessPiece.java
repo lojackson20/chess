@@ -71,6 +71,16 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
+//        ChessPieceCalculator moves = switch(getPieceType()) {
+//            case QUEEN -> new QueenMoveCalculator();
+//            case BISHOP -> new BishopMoveCalculator();
+//            case KING -> new KingMoveCalculator();
+//            case ROOK -> new RookMoveCalculator();
+//            case PAWN -> new PawnMoveCalculator();
+//            case KNIGHT -> new KnightMoveCalculator();
+//        };
+//        return pieceMoves(board, myPosition);
+        // switch case pic on phone
         return new ArrayList<>();
     }
 }
