@@ -23,7 +23,7 @@ public class KingMoveCalculator extends ChessPieceCalculator {
             ChessPosition newPosition = new ChessPosition(row, col);
 
             if (!isInBounds(newPosition)) {
-                break;
+                continue;
             }
 
             ChessPiece finishPiece = board.getPiece(newPosition);
@@ -33,7 +33,6 @@ public class KingMoveCalculator extends ChessPieceCalculator {
                 if (finishPiece.getTeamColor() != color) {
                     moves.add(new ChessMove(myPosition, newPosition, null));
                 }
-                break;
             }
         }
         return moves;
