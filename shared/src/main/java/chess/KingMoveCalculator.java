@@ -5,7 +5,7 @@ import java.util.List;
 
 public class KingMoveCalculator extends ChessPieceCalculator {
     @Override
-    Collection<ChessMove> possibleMoves(ChessBoard board, ChessPosition myPosition) {
+    Collection<ChessMove> possibleMoves(ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor color) {
         return List.of();
     }
 }

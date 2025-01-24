@@ -79,7 +79,7 @@ public class ChessPiece {
             case PAWN -> new PawnMoveCalculator();
             case KNIGHT -> new KnightMoveCalculator();
         };
-        return moves.possibleMoves(board, myPosition);
+        return moves.possibleMoves(board, myPosition, getTeamColor());
         // switch case pic on phone
 //        return new ArrayList<>();
     }
