@@ -14,27 +14,39 @@ public class RookMoveCalculator extends ChessPieceCalculator {
     Collection<ChessMove> possibleMoves(ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor color) {
         List<ChessMove> moves = new ArrayList<>();
 
-        for (int[] move : ROOK_MOVES) {
-            int newRow = myPosition.getRow() + move[0];
-            int newCol = myPosition.getColumn() + move[1];
-            ChessPosition newPosition = new ChessPosition(newRow, newCol);
+        for (int[] direction : ROOK_MOVES) {
+            int row = myPosition.getRow();
+            int col = myPosition.getColumn();
 
-            if (isValidMove(board, newPosition, color)) {
-                ChessPiece capturedPiece = board.getPiece(newPosition);
-                moves.add(new ChessMove(myPosition, newPosition, null));
+            while (true) {
+                row += direction[0];
+                col += direction[1];
+                ChessPosition newPosition = new ChessPosition(row, col);
+
+                if (!isInBounds(newPosition)) {
+                    break;
+                }
+
+                ChessPiece finishPiece = board.getPiece(newPosition);
+                if (finishPiece == null) {
+                    moves.add(new ChessMove(myPosition, newPosition, null));
+                } else {
+                    if (finishPiece.getTeamColor() != color) {
+                        moves.add(new ChessMove(myPosition, newPosition, null));
+                    }
+                    break;
+                }
             }
+
+
         }
 
         return moves;
     }
-    private boolean isValidMove(ChessBoard board, ChessPosition position, ChessGame.TeamColor color) {
-        if (position.getRow() < 1 || position.getRow() > 8 || position.getColumn() < 1 || position.getColumn() > 8) {
-            return false;
-        }
 
-        ChessPiece pieceAtDestination = board.getPiece(position);
-
-        // Check if the destination is empty or occupied by an opponent's piece
-        return pieceAtDestination == null || pieceAtDestination.getTeamColor() != color;
+    private boolean isInBounds(ChessPosition position) {
+        int row = position.getRow();
+        int col = position.getColumn();
+        return row >= 1 && row <= 8 && col >= 1 && col <= 8;
     }
 }
