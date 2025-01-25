@@ -43,7 +43,7 @@ public class PawnMoveCalculator extends ChessPieceCalculator {
         ChessPosition minusDiagonal = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() - 1);
         ChessPosition plusDiagonal = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() + 1);
         ChessPiece minusPiece = board.getPiece(minusDiagonal);
-        ChessPiece plusPiece = board.getPiece(minusDiagonal);
+        ChessPiece plusPiece = board.getPiece(plusDiagonal);
 
         if (isInBounds(minusDiagonal) && minusPiece != null && minusPiece.getTeamColor() != color) {
             if (minusDiagonal.getRow() == 8 || minusDiagonal.getRow() == 1) {
@@ -72,7 +72,7 @@ public class PawnMoveCalculator extends ChessPieceCalculator {
     }
 
     private boolean isInStartingRow(int row, ChessGame.TeamColor color) {
-        return (color == ChessGame.TeamColor.WHITE && row == 1) || (color == ChessGame.TeamColor.BLACK && row == 6);
+        return (color == ChessGame.TeamColor.WHITE && row == 2) || (color == ChessGame.TeamColor.BLACK && row == 7);
     }
 
     private boolean isInBounds(ChessPosition position) {
