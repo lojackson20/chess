@@ -42,28 +42,33 @@ public class PawnMoveCalculator extends ChessPieceCalculator {
         // diagonal stuff
         ChessPosition minusDiagonal = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() - 1);
         ChessPosition plusDiagonal = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn() + 1);
-        ChessPiece minusPiece = board.getPiece(minusDiagonal);
-        ChessPiece plusPiece = board.getPiece(plusDiagonal);
 
-        if (isInBounds(minusDiagonal) && minusPiece != null && minusPiece.getTeamColor() != color) {
-            if (minusDiagonal.getRow() == 8 || minusDiagonal.getRow() == 1) {
-                moves.add(new ChessMove(myPosition, minusDiagonal, ChessPiece.PieceType.BISHOP));
-                moves.add(new ChessMove(myPosition, minusDiagonal, ChessPiece.PieceType.QUEEN));
-                moves.add(new ChessMove(myPosition, minusDiagonal, ChessPiece.PieceType.ROOK));
-                moves.add(new ChessMove(myPosition, minusDiagonal, ChessPiece.PieceType.KNIGHT));
-            } else {
-                moves.add(new ChessMove(myPosition, minusDiagonal, null));
+
+        if (isInBounds(minusDiagonal)) {
+            ChessPiece minusPiece = board.getPiece(minusDiagonal);
+            if (minusPiece != null && minusPiece.getTeamColor() != color) {
+                if (minusDiagonal.getRow() == 8 || minusDiagonal.getRow() == 1) {
+                    moves.add(new ChessMove(myPosition, minusDiagonal, ChessPiece.PieceType.BISHOP));
+                    moves.add(new ChessMove(myPosition, minusDiagonal, ChessPiece.PieceType.QUEEN));
+                    moves.add(new ChessMove(myPosition, minusDiagonal, ChessPiece.PieceType.ROOK));
+                    moves.add(new ChessMove(myPosition, minusDiagonal, ChessPiece.PieceType.KNIGHT));
+                } else {
+                    moves.add(new ChessMove(myPosition, minusDiagonal, null));
+                }
             }
         }
 
-        if (isInBounds(plusDiagonal) && plusPiece != null && plusPiece.getTeamColor() != color) {
-            if (plusDiagonal.getRow() == 8 || plusDiagonal.getRow() == 1) {
-                moves.add(new ChessMove(myPosition, plusDiagonal, ChessPiece.PieceType.BISHOP));
-                moves.add(new ChessMove(myPosition, plusDiagonal, ChessPiece.PieceType.QUEEN));
-                moves.add(new ChessMove(myPosition, plusDiagonal, ChessPiece.PieceType.ROOK));
-                moves.add(new ChessMove(myPosition, plusDiagonal, ChessPiece.PieceType.KNIGHT));
-            } else {
-                moves.add(new ChessMove(myPosition, plusDiagonal, null));
+        if (isInBounds(plusDiagonal)) {
+            ChessPiece plusPiece = board.getPiece(plusDiagonal);
+            if (plusPiece != null && plusPiece.getTeamColor() != color) {
+                if (plusDiagonal.getRow() == 8 || plusDiagonal.getRow() == 1) {
+                    moves.add(new ChessMove(myPosition, plusDiagonal, ChessPiece.PieceType.BISHOP));
+                    moves.add(new ChessMove(myPosition, plusDiagonal, ChessPiece.PieceType.QUEEN));
+                    moves.add(new ChessMove(myPosition, plusDiagonal, ChessPiece.PieceType.ROOK));
+                    moves.add(new ChessMove(myPosition, plusDiagonal, ChessPiece.PieceType.KNIGHT));
+                } else {
+                    moves.add(new ChessMove(myPosition, plusDiagonal, null));
+                }
             }
         }
 
