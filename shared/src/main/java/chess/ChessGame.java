@@ -241,7 +241,6 @@ public class ChessGame {
 
     /**
      * Gets the current chessboard
-     *
      * @return the chessboard
      */
     public ChessBoard getBoard() {
