@@ -31,6 +31,7 @@ public class ChessBoard {
     private ChessPiece[][] myChessBoard;
     public ChessBoard() {
         myChessBoard = new ChessPiece[8][8];
+
     }
 
     /**
