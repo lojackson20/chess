@@ -164,7 +164,6 @@ public class ChessGame {
 
     /**
      * Determines if the given team is in checkmate
-     *
      * @param teamColor which team to check for checkmate
      * @return True if the specified team is in checkmate
      */
