@@ -233,7 +233,6 @@ public class ChessGame {
 
     /**
      * Sets this game's chessboard with a given board
-     *
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
