@@ -1,33 +1,41 @@
 package service;
 
-import dataaccess.AuthDAO;
-import dataaccess.UserDAO;
-
+import dataaccess.DataAccess;
 import java.util.UUID;
 
+import dataaccess.DataAccessException;
+import service.RegisterRequest;
+import service.RegisterResult;
+import model.UserData;
+import model.AuthData;
+
+
 public class UserService {
-    public RegisterResult registerUser(RegisterRequest registerRequest) {
+    private final DataAccess dataAccess;
+
+    public UserService(DataAccess dataAccess) {
+        this.dataAccess = dataAccess;
+    }
+
+    public RegisterResult registerUser(RegisterRequest registerRequest) throws DataAccessException {
         // look at diagram, create authtoken, send to auth dao, that creates it, then returns it
-        final UserDAO userDao = new UserDAO();
-        private final AuthDAO authTokenDao = new AuthDAO();
-
-        public RegisterResult registerUser(RegisterRequest registerRequest) {
-            // Check if user already exists
-            if (userDao.getUser(registerRequest.getUsername()) != null) {
-                return new RegisterResult(false, "Username already taken.", null);
-            }
-
-            // Create new user and store in database
-            User newUser = new User(registerRequest.getUsername(), registerRequest.getPassword(), registerRequest.getEmail());
-            userDao.createUser(newUser);
-
-            // Generate auth token
-            String token = UUID.randomUUID().toString();
-            AuthToken authToken = new AuthToken(registerRequest.getUsername(), token);
-            authTokenDao.createAuthToken(authToken);
-
-            return new RegisterResult(true, "Registration successful.", token);
+        if (registerRequest == null || registerRequest.username().isEmpty() || registerRequest.password().isEmpty()) {
+            throw new DataAccessException("{message: Error: bad request}", 400);
         }
 
+        UserData newUser = new UserData(registerRequest.username(), registerRequest.password(), registerRequest.email());
+        boolean userCreated = dataAccess.createUser(newUser);
+
+        if (!userCreated) {
+            return null;
+        }
+
+        String authToken = UUID.randomUUID().toString();
+        AuthData authData = new AuthData(registerRequest.username(), authToken);
+        dataAccess.createAuth(authData);
+
+        return new RegisterResult(registerRequest.username(), authToken);
     }
+
+
 }

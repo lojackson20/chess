@@ -1,0 +1,33 @@
+package dataaccess;
+
+import model.AuthData;
+import model.GameData;
+import model.UserData;
+
+import java.util.ArrayList;
+
+public interface DataAccess {
+    void clear();
+
+    // create user, get user
+    boolean createUser(UserData user) throws DataAccessException;
+
+    UserData getUser(String username);
+
+    // create game, get game, list game, update game
+    boolean createGame(GameData game);
+
+    GameData getGame(String id);
+
+    ArrayList<GameData> listGames(GameData games);
+
+    GameData updateGame(GameData game);
+
+    // create auth, get auth, delete auth
+    boolean createAuth(AuthData auth);
+
+    AuthData getAuth(String auth);
+
+    void deleteAuth(String auth);
+
+}
