@@ -19,6 +19,10 @@ public interface DataAccess {
 
     GameData getGame(String id);
 
+    GameData getGame(int id);
+
+    GameData getGame(Integer id);
+
     ArrayList<GameData> listGames(GameData games);
 
     GameData updateGame(GameData game);

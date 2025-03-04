@@ -45,9 +45,15 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public GameData getGame(int id) {
+    public GameData getGame(String id) {
+        return null;
+    }
+
+    @Override
+    public GameData getGame(Integer id) {
         return games.get(id);
     }
+
 
     @Override
     public ArrayList<GameData> listGames(GameData games) {
@@ -74,11 +80,11 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public AuthData getAuth(String auth) {
-        return null;
+        return auths.get(auth);
     }
 
     @Override
     public void deleteAuth(String auth) {
-
+        auths.remove(auth);
     }
 }
