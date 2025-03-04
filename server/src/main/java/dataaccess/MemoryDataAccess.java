@@ -76,10 +76,10 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public boolean createAuth(AuthData auth) {
-//        if (!auths.containsKey(auth.token())) {
-//            auths.put(auth.token(), auth);
-//            return true;
-//        }
+        if (!auths.containsKey(auth.authToken())) {
+            auths.put(auth.authToken(), auth);
+            return true;
+        }
         return false;
     }
 
