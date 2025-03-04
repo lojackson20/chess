@@ -10,10 +10,14 @@ import java.util.HashMap;
 public class MemoryDataAccess implements DataAccess {
 
     final private HashMap<String, UserData> users = new HashMap<>();
+    private final HashMap<Integer, GameData> games = new HashMap<>();
+    private final HashMap<String, AuthData> auths = new HashMap<>();
 
     @Override
     public void clear() {
-
+        users.clear();
+        games.clear();
+        auths.clear();
     }
 
     @Override
@@ -28,31 +32,43 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public UserData getUser(String username) {
-        return null;
+        return users.get(username);
     }
 
     @Override
     public boolean createGame(GameData game) {
+        if (!games.containsKey(game.gameID())) {
+            games.put(game.gameID(), game);
+            return true;
+        }
         return false;
     }
 
     @Override
-    public GameData getGame(String id) {
-        return null;
+    public GameData getGame(int id) {
+        return games.get(id);
     }
 
     @Override
     public ArrayList<GameData> listGames(GameData games) {
-        return null;
+        return new ArrayList<>(this.games.values());
     }
 
     @Override
     public GameData updateGame(GameData game) {
+        if (games.containsKey(game.gameID())) {
+            games.put(game.gameID(), game);
+            return game;
+        }
         return null;
     }
 
     @Override
     public boolean createAuth(AuthData auth) {
+        if (!auths.containsKey(auth.token())) {
+            auths.put(auth.token(), auth);
+            return true;
+        }
         return false;
     }
 
