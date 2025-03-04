@@ -50,6 +50,11 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
+    public GameData getGame(int id) {
+        return null;
+    }
+
+    @Override
     public GameData getGame(Integer id) {
         return games.get(id);
     }
@@ -71,10 +76,10 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public boolean createAuth(AuthData auth) {
-        if (!auths.containsKey(auth.token())) {
-            auths.put(auth.token(), auth);
-            return true;
-        }
+//        if (!auths.containsKey(auth.token())) {
+//            auths.put(auth.token(), auth);
+//            return true;
+//        }
         return false;
     }
 
@@ -84,7 +89,8 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public void deleteAuth(String auth) {
+    public boolean deleteAuth(String auth) {
         auths.remove(auth);
+        return false;
     }
 }

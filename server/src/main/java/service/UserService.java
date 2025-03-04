@@ -1,13 +1,15 @@
 package service;
 
 import dataaccess.DataAccess;
+
+import java.util.ArrayList;
 import java.util.UUID;
 
+import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
-import service.RegisterRequest;
-import service.RegisterResult;
 import model.UserData;
 import model.AuthData;
+import model.GameData;
 
 
 public class UserService {
@@ -37,22 +39,56 @@ public class UserService {
         return new RegisterResult(registerRequest.username(), authToken);
     }
 
-    public AuthData loginUser(String username, String password) throws DataAccessException {
-        if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
+    public LoginResult loginUser(LoginRequest loginRequest) throws DataAccessException {
+        if (loginRequest.username() == null || loginRequest.username().isEmpty() || loginRequest.password() == null || loginRequest.password().isEmpty()) {
             throw new DataAccessException("{message: Error: bad request}", 400);
         }
 
-        UserData user = dataAccess.getUser(username);
-        if (user == null || !user.password().equals(password)) {
+        UserData user = dataAccess.getUser(loginRequest.username());
+        if (user == null || !user.password().equals(loginRequest.password())) {
             throw new DataAccessException("{message: Error: unauthorized}", 401);
         }
 
         String authToken = UUID.randomUUID().toString();
-        AuthData authData = new AuthData(username, authToken);
+        AuthData authData = new AuthData(loginRequest.username(), authToken);
         dataAccess.createAuth(authData);
 
-        return authData;
+        return new LoginResult(authData.username(), authData.authToken());
     }
 
+
+    public LogoutResult logoutUser(String authToken) throws DataAccessException {
+        if (authToken == null || authToken.isEmpty()) {
+            throw new DataAccessException("{message: Error: bad request}", 400);
+        }
+
+        AuthData authData = dataAccess.getAuth(authToken);
+        if (authData == null) {
+            throw new DataAccessException("{message: Error: unauthorized}", 401);
+        }
+
+        boolean removed = dataAccess.deleteAuth(authToken);
+        if (!removed) {
+            throw new DataAccessException("{message: Error: internal server error}", 500);
+        }
+
+        return new LogoutResult();
+    }
+
+    public ArrayList<GameData> listGames() {
+        return dataAccess.listGames(null);
+    }
+
+    public boolean createGame(GameData game) {
+        return dataAccess.createGame(game);
+    }
+
+    public GameData getGame(int gameID) {
+        return dataAccess.getGame(gameID);
+    }
+
+    public boolean updateGame(GameData game) {
+        return dataAccess.updateGame(game) != null;
+    }
 
 }

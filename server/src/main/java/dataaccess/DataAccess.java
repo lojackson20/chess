@@ -32,6 +32,6 @@ public interface DataAccess {
 
     AuthData getAuth(String auth);
 
-    void deleteAuth(String auth);
+    boolean deleteAuth(String auth);
 
 }
