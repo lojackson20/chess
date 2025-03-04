@@ -76,6 +76,14 @@ public class UserService {
     }
 
     public ArrayList<GameData> listGames() {
+        if (authToken == null || authToken.isEmpty()) {
+            throw new DataAccessException("{message: Error: bad request}", 400);
+        }
+
+        AuthData authData = dataAccess.getAuth(authToken);
+        if (authData == null) {
+            throw new DataAccessException("{message: Error: unauthorized}", 401);
+        }
         return dataAccess.listGames(null);
     }
 
