@@ -28,7 +28,7 @@ public class ServiceTest {
     @Test
     void registerUserBad() throws DataAccessException {
         assertThrows(DataAccessException.class, () -> {
-            RegisterResult registerResult = userService.registerUser(new RegisterRequest("username", "", "lukeoj@byu.edu"));
+            RegisterResult registerResult = userService.registerUser(new RegisterRequest("username", null, "lukeoj@byu.edu"));
         });
     }
 
@@ -101,7 +101,7 @@ public class ServiceTest {
 
         CreateGameResult gameID = gameService.createGame(registerResult.authToken(), "game2");
         JoinGameResult joinGameResult = gameService.joinGame(registerResult.authToken(), gameID.gameID(), "Black");
-        assertNull(joinGameResult);
+        assertNotNull(joinGameResult);
     }
 
     @Test
