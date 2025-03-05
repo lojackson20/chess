@@ -55,18 +55,33 @@ public class ServiceTest {
     }
 
     @Test
-    void listGames() throws DataAccessException {
+    void createGame() throws DataAccessException {
         RegisterResult registerResult = userService.registerUser(new RegisterRequest("username", "password", "lukeoj@byu.edu"));
 
-        ListGamesResult listGamesResult = gameService.listGames(registerResult.authToken());
-        assertEquals(listGamesResult);
+        CreateGameResult createGameResult = gameService.createGame(registerResult.authToken());
+        assertEquals(new LogoutResult(), logoutResult);
     }
 
     @Test
-    void listGamesBad() throws DataAccessException {
+    void createGameBad() throws DataAccessException {
         assertThrows(DataAccessException.class, () -> {
             LogoutResult logoutResult1 = userService.logoutUser("authToken");
         });
     }
+
+//    @Test
+//    void listGames() throws DataAccessException {
+//        RegisterResult registerResult = userService.registerUser(new RegisterRequest("username", "password", "lukeoj@byu.edu"));
+//
+//        ListGamesResult listGamesResult = gameService.listGames(registerResult.authToken());
+//        assertEquals(new ListGamesResult(), listGamesResult);
+//    }
+//
+//    @Test
+//    void listGamesBad() throws DataAccessException {
+//        assertThrows(DataAccessException.class, () -> {
+//            LogoutResult logoutResult1 = userService.logoutUser("authToken");
+//        });
+//    }
 
 }

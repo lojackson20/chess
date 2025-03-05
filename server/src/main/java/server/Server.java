@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import dataaccess.DataAccess;
@@ -39,7 +40,7 @@ public class Server {
         Spark.delete("/session", this::logoutUser);
         Spark.get("/game", this::listGames);
         Spark.post("/game", this::createGame);
-        Spark.put("/game", this::joinGame);
+//        Spark.put("/game", this::joinGame);
 
         Spark.exception(DataAccessException.class, this::exceptionHandler);
 
@@ -109,13 +110,13 @@ public class Server {
         int gameID = generateUniqueGameID();
         GameData newGame = new GameData(gameID, null, null, gameRequest.gameName(), new ChessGame());
 
-        if (!dataAccess.createGame(newGame)) {
+        if (!userService.dataAccess.createGame(newGame)) {
             response.status(400);
             return new Gson().toJson("{message: \"Error: game creation failed\"}");
         }
 
         response.status(200);
-        return new Gson().toJson(new GameCreationResult(gameID));
+        return new Gson().toJson(new CreateGameResult(gameID));
     }
 
 

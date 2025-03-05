@@ -13,7 +13,7 @@ import model.GameData;
 
 
 public class UserService {
-    private final DataAccess dataAccess;
+    public final DataAccess dataAccess;
 
     public UserService(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
