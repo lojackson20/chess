@@ -3,6 +3,7 @@ package service;
 import dataaccess.DataAccess;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.UUID;
 
 import dataaccess.DataAccess;
@@ -25,7 +26,7 @@ public class UserService {
 
     public RegisterResult registerUser(RegisterRequest registerRequest) throws DataAccessException {
         // look at diagram, create authtoken, send to auth dao, that creates it, then returns it
-        if (registerRequest == null || registerRequest.username().isEmpty() || registerRequest.password().isEmpty()) {
+        if (registerRequest == null || registerRequest.username() == null || Objects.equals(registerRequest.password(), null)) {
             throw new DataAccessException("{message: Error: bad request}", 400);
         }
 
@@ -45,12 +46,12 @@ public class UserService {
 
     public LoginResult loginUser(LoginRequest loginRequest) throws DataAccessException {
         if (loginRequest.username() == null || loginRequest.username().isEmpty() || loginRequest.password() == null || loginRequest.password().isEmpty()) {
-            throw new DataAccessException("{message: Error: bad request}", 400);
+            throw new DataAccessException("message: Error: bad request", 400);
         }
 
         UserData user = dataAccess.getUser(loginRequest.username());
         if (user == null || !user.password().equals(loginRequest.password())) {
-            throw new DataAccessException("{message: Error: unauthorized}", 401);
+            throw new DataAccessException("message: Error: unauthorized", 401);
         }
 
         String authToken = UUID.randomUUID().toString();

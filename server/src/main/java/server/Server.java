@@ -103,20 +103,13 @@ public class Server {
         String authToken = request.headers("Authorization");
         AuthData authData = userService.dataAccess.getAuth(authToken);
         if (authData == null) {
-            response.status(401);
-            return new Gson().toJson("{message: \"Error: unauthorized\"}");
+            throw new DataAccessException("Error: unauthorized", 401);
         }
 
         CreateGameRequest gameRequest = new Gson().fromJson(request.body(), CreateGameRequest.class);
         int gameID = generateUniqueGameID();
         GameData newGame = new GameData(gameID, null, null, gameRequest.gameName(), new ChessGame());
 
-//        if (!userService.dataAccess.createGame(newGame)) {
-//            response.status(400);
-//            return new Gson().toJson("{message: \"Error: game creation failed\"}");
-//        }
-
-        response.status(200);
         return new Gson().toJson(new CreateGameResult(gameID));
     }
 

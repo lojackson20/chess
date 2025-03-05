@@ -27,12 +27,12 @@ public class GameService {
 
     public Integer createGame(String authToken) throws DataAccessException {
         if (authToken == null || authToken.isEmpty()) {
-            throw new DataAccessException("{message: Error: bad request}", 400);
+            throw new DataAccessException("Error: bad request", 400);
         }
 
         AuthData authData = dataAccess.getAuth(authToken);
         if (authData == null) {
-            throw new DataAccessException("{message: Error: unauthorized}", 401);
+            throw new DataAccessException("Error: unauthorized", 401);
         }
 
         GameData newGame = new GameData(0, null, null, "gameName", new ChessGame());
