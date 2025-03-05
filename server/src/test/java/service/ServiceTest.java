@@ -2,14 +2,22 @@ package service;
 
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ServiceTest {
 
-    UserService userService = new UserService(new MemoryDataAccess());
-    GameService gameService = new GameService(new MemoryDataAccess());
+    private UserService userService;
+    private GameService gameService;
+
+    @BeforeEach
+    void setUp() {
+        MemoryDataAccess memoryDataAccess = new MemoryDataAccess();
+        userService = new UserService(memoryDataAccess);
+        gameService = new GameService(memoryDataAccess);
+    }
 
     @Test
     void registerUser() throws DataAccessException {
