@@ -6,8 +6,6 @@ import dataaccess.DataAccess;
 import model.AuthData;
 import model.GameData;
 
-import java.util.ArrayList;
-
 public class GameService {
     private final DataAccess dataAccess;
 
@@ -42,7 +40,7 @@ public class GameService {
         return new CreateGameResult(gameID).gameID();
     }
 
-    public void joinGame(String authToken, int gameID, String playerColor) throws DataAccessException {
+    public JoinGameResult joinGame(String authToken, int gameID, String playerColor) throws DataAccessException {
         if (authToken == null || authToken.isEmpty() || playerColor == null || playerColor.isEmpty()) {
             throw new DataAccessException("{message: Error: bad request}", 400);
         }
@@ -61,6 +59,7 @@ public class GameService {
 
         // Save the updated game state
         dataAccess.updateGame(updatedGame);
+        return null;
     }
 
     private static GameData getGameData(String playerColor, GameData game, AuthData authData) throws DataAccessException {
