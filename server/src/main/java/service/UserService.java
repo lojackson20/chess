@@ -45,7 +45,8 @@ public class UserService {
     }
 
     public LoginResult loginUser(LoginRequest loginRequest) throws DataAccessException {
-        if (loginRequest.username() == null || loginRequest.username().isEmpty() || loginRequest.password() == null || loginRequest.password().isEmpty()) {
+        if (loginRequest.username() == null || loginRequest.username().isEmpty()
+                || loginRequest.password() == null || loginRequest.password().isEmpty()) {
             throw new DataAccessException("message: Error: bad request", 400);
         }
 

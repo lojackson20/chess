@@ -11,12 +11,7 @@ public class PawnMoveCalculator extends ChessPieceCalculator {
     Collection<ChessMove> possibleMoves(ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor color) {
         List<ChessMove> moves = new ArrayList<>();
         // check to see if moving forward one is ok
-            // check to see if moving one is valid and it is the last row -> add 4 moves( queen, rook, bishop, k)
-            // check to see if in the first row (starting) can move forward two if so see if it is ok to move two
-        //        int direction = 1;
-//        if (color == ChessGame.TeamColor.BLACK) {
-//            direction = -1;
-//        }
+
         int direction = (color == ChessGame.TeamColor.WHITE) ? 1 : -1;
 
         ChessPosition oneForward = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn());

@@ -27,7 +27,6 @@ public class MemoryDataAccess implements DataAccess {
             return true;
         }
         throw new DataAccessException("{message: Error: already taken}", 403);
-//        return false;
     }
 
     @Override
@@ -44,15 +43,6 @@ public class MemoryDataAccess implements DataAccess {
         throw new DataAccessException("{message: Error: bad request}", 400);
     }
 
-//    @Override
-//    public GameData getGame(String id) {
-//        return null;
-//    }
-//
-//    @Override
-//    public GameData getGame(int id) {
-//        return null;
-//    }
 
     @Override
     public GameData getGame(Integer id) {
