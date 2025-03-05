@@ -54,7 +54,7 @@ public class Server {
 
 
     private void exceptionHandler(DataAccessException e, Request request, Response response) {
-        response.status(e.StatusCode());
+        response.status(e.statusCode());
         response.body(e.toJson());
     }
 

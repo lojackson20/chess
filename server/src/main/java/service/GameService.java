@@ -8,7 +8,7 @@ import model.GameData;
 
 public class GameService {
     private final DataAccess dataAccess;
-    private Integer IDNumber = 1;
+    private Integer iDNumber = 1;
 
     public GameService(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
@@ -36,7 +36,7 @@ public class GameService {
             throw new DataAccessException("Error: unauthorized", 401);
         }
 
-        GameData newGame = new GameData(IDNumber++, null, null, gameName, new ChessGame());
+        GameData newGame = new GameData(iDNumber++, null, null, gameName, new ChessGame());
         int gameID = dataAccess.createGame(newGame);
         return new CreateGameResult(gameID);
     }
