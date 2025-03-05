@@ -67,8 +67,8 @@ public class UserService {
             throw new DataAccessException("{message: Error: unauthorized}", 401);
         }
 
-        boolean removed = dataAccess.deleteAuth(authToken);
-        if (!removed) {
+        boolean notRemoved = dataAccess.deleteAuth(authToken);
+        if (notRemoved) {
             throw new DataAccessException("{message: Error: internal server error}", 500);
         }
 

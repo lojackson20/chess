@@ -3,6 +3,7 @@ package server;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import dataaccess.DataAccess;
+import dataaccess.MemoryDataAccess;
 import model.AuthData;
 import model.GameData;
 import service.*;
@@ -12,9 +13,17 @@ import java.util.ArrayList;
 
 public class Server {
     private final UserService userService;
+    private final GameService gameService;
 
-    public Server(UserService userService) {
+    public Server() {
+        MemoryDataAccess memoryDataAccess = new MemoryDataAccess();
+        this.userService = new UserService(memoryDataAccess);
+        this.gameService = new GameService(memoryDataAccess);
+    }
+
+    public Server(UserService userService, GameService gameService) {
         this.userService = userService;
+        this.gameService = gameService;
     }
 
     public int run(int desiredPort) {
@@ -50,8 +59,8 @@ public class Server {
 
 
     private Object clearApp(Request request, Response response) {
-        dataAccess.clear();
-        response.status(200);
+//        dataAccess.clear();
+//        response.status(200);
         return new Gson().toJson("{message: \"Database cleared successfully\"}");
     }
 
@@ -77,8 +86,12 @@ public class Server {
         return new Gson().toJson(logoutResult);
     }
 
-    private Object listGames(Request request, Response response) {
-        ArrayList<GameData> games = dataAccess.listGames(null);
+    private Object listGames(Request request, Response response) throws DataAccessException {
+        String authToken = request.headers("Authorization");
+        if (authToken == null || authToken.isEmpty()) {
+            response.status(401);
+        }
+        ListGamesResult games = gameService.listGames(request.headers("Authorization"));
         response.status(200);
         return new Gson().toJson(games);
     }
@@ -86,7 +99,7 @@ public class Server {
 
     private Object createGame(Request request, Response response) {
         String authToken = request.headers("Authorization");
-        AuthData authData = dataAccess.getAuth(authToken);
+        AuthData authData = userService.dataAccess.getAuth(authToken);
         if (authData == null) {
             response.status(401);
             return new Gson().toJson("{message: \"Error: unauthorized\"}");
@@ -106,35 +119,35 @@ public class Server {
     }
 
 
-    private Object joinGame(Request request, Response response) {
-        String authToken = request.headers("Authorization");
-        AuthData authData = dataAccess.getAuth(authToken);
-        if (authData == null) {
-            response.status(401);
-            return new Gson().toJson("{message: \"Error: unauthorized\"}");
-        }
-
-        JoinGameRequest joinRequest = new Gson().fromJson(request.body(), JoinGameRequest.class);
-        GameData game = dataAccess.getGame(joinRequest.gameID());
-        if (game == null) {
-            response.status(400);
-            return new Gson().toJson("{message: \"Error: game not found\"}");
-        }
-
-        GameData updatedGame;
-        if (joinRequest.playerColor().equals("WHITE") && game.whiteUsername() == null) {
-            updatedGame = new GameData(game.gameID(), authData.username(), game.blackUsername(), game.gameName(), game.game());
-        } else if (joinRequest.playerColor().equals("BLACK") && game.blackUsername() == null) {
-            updatedGame = new GameData(game.gameID(), game.whiteUsername(), authData.username(), game.gameName(), game.game());
-        } else {
-            response.status(403);
-            return new Gson().toJson("{message: \"Error: seat already taken\"}");
-        }
-
-        dataAccess.updateGame(updatedGame);
-        response.status(200);
-        return new Gson().toJson("{message: \"Joined game successfully\"}");
-    }
+//    private Object joinGame(Request request, Response response) {
+//        String authToken = request.headers("Authorization");
+//        AuthData authData = dataAccess.getAuth(authToken);
+//        if (authData == null) {
+//            response.status(401);
+//            return new Gson().toJson("{message: \"Error: unauthorized\"}");
+//        }
+//
+//        JoinGameRequest joinRequest = new Gson().fromJson(request.body(), JoinGameRequest.class);
+//        GameData game = dataAccess.getGame(joinRequest.gameID());
+//        if (game == null) {
+//            response.status(400);
+//            return new Gson().toJson("{message: \"Error: game not found\"}");
+//        }
+//
+//        GameData updatedGame;
+//        if (joinRequest.playerColor().equals("WHITE") && game.whiteUsername() == null) {
+//            updatedGame = new GameData(game.gameID(), authData.username(), game.blackUsername(), game.gameName(), game.game());
+//        } else if (joinRequest.playerColor().equals("BLACK") && game.blackUsername() == null) {
+//            updatedGame = new GameData(game.gameID(), game.whiteUsername(), authData.username(), game.gameName(), game.game());
+//        } else {
+//            response.status(403);
+//            return new Gson().toJson("{message: \"Error: seat already taken\"}");
+//        }
+//
+//        dataAccess.updateGame(updatedGame);
+//        response.status(200);
+//        return new Gson().toJson("{message: \"Joined game successfully\"}");
+//    }
 
     private int generateUniqueGameID() {
         return (int) (Math.random() * 1000000);

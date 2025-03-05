@@ -14,7 +14,7 @@ public class GameService {
         this.dataAccess = dataAccess;
     }
 
-    public ArrayList<GameData> listGames(String authToken) throws DataAccessException {
+    public ListGamesResult listGames(String authToken) throws DataAccessException {
         if (authToken == null || authToken.isEmpty()) {
             throw new DataAccessException("{message: Error: bad request}", 400);
         }
@@ -23,7 +23,7 @@ public class GameService {
         if (authData == null) {
             throw new DataAccessException("{message: Error: unauthorized}", 401);
         }
-        return dataAccess.listGames(null);
+        return new ListGamesResult(dataAccess.listGames(null));
     }
 
     public boolean createGame(GameData game) {
