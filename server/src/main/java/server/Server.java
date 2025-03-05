@@ -107,14 +107,10 @@ public class Server {
         }
 
         CreateGameRequest gameRequest = new Gson().fromJson(request.body(), CreateGameRequest.class);
-        CreateGameResult gameID = gameService.createGame(authToken);
+        CreateGameResult gameID = gameService.createGame(authToken, gameRequest.gameName());
 //        GameData newGame = new GameData(gameID, null, null, gameRequest.gameName(), new ChessGame());
 
         return new Gson().toJson(gameID);
-    }
-
-    private int generateUniqueGameID() {
-        return (int) (Math.random() * 1000000);
     }
 
     private Object joinGame(Request request, Response response) throws DataAccessException {

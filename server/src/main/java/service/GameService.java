@@ -26,7 +26,7 @@ public class GameService {
         return new ListGamesResult(dataAccess.listGames(null));
     }
 
-    public CreateGameResult createGame(String authToken) throws DataAccessException {
+    public CreateGameResult createGame(String authToken, String gameName) throws DataAccessException {
         if (authToken == null || authToken.isEmpty()) {
             throw new DataAccessException("Error: bad request", 400);
         }
@@ -36,7 +36,7 @@ public class GameService {
             throw new DataAccessException("Error: unauthorized", 401);
         }
 
-        GameData newGame = new GameData(IDNumber++, null, null, "gameName", new ChessGame());
+        GameData newGame = new GameData(IDNumber++, null, null, gameName, new ChessGame());
         int gameID = dataAccess.createGame(newGame);
         return new CreateGameResult(gameID);
     }
