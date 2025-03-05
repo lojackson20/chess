@@ -58,30 +58,47 @@ public class ServiceTest {
     void createGame() throws DataAccessException {
         RegisterResult registerResult = userService.registerUser(new RegisterRequest("username", "password", "lukeoj@byu.edu"));
 
-        CreateGameResult createGameResult = gameService.createGame(registerResult.authToken());
-        assertEquals(new LogoutResult(), logoutResult);
+        Integer createGameResult = gameService.createGame(registerResult.authToken());
+        assertEquals(0, createGameResult);
     }
 
     @Test
     void createGameBad() throws DataAccessException {
         assertThrows(DataAccessException.class, () -> {
+            Integer createGameResult = gameService.createGame("authToken");
+        });
+    }
+
+    @Test
+    void listGames() throws DataAccessException {
+        RegisterResult registerResult = userService.registerUser(new RegisterRequest("username", "password", "lukeoj@byu.edu"));
+
+        ListGamesResult listGamesResult = gameService.listGames(registerResult.authToken());
+        Integer createGameResult = gameService.createGame(registerResult.authToken());
+//        assertEquals(listGamesResult);
+    }
+
+    @Test
+    void listGamesBad() throws DataAccessException {
+        assertThrows(DataAccessException.class, () -> {
             LogoutResult logoutResult1 = userService.logoutUser("authToken");
         });
     }
 
-//    @Test
-//    void listGames() throws DataAccessException {
-//        RegisterResult registerResult = userService.registerUser(new RegisterRequest("username", "password", "lukeoj@byu.edu"));
-//
-//        ListGamesResult listGamesResult = gameService.listGames(registerResult.authToken());
-//        assertEquals(new ListGamesResult(), listGamesResult);
-//    }
-//
-//    @Test
-//    void listGamesBad() throws DataAccessException {
-//        assertThrows(DataAccessException.class, () -> {
-//            LogoutResult logoutResult1 = userService.logoutUser("authToken");
-//        });
-//    }
+    @Test
+    void joinGame() throws DataAccessException {
+        RegisterResult registerResult = userService.registerUser(new RegisterRequest("username", "password", "lukeoj@byu.edu"));
+
+        ListGamesResult listGamesResult = gameService.listGames(registerResult.authToken());
+        Integer createGameResult = gameService.createGame(registerResult.authToken());
+//        assertEquals(listGamesResult);
+    }
+
+    @Test
+    void joinGameBad() throws DataAccessException {
+        assertThrows(DataAccessException.class, () -> {
+            LogoutResult logoutResult1 = userService.logoutUser("authToken");
+        });
+    }
 
 }

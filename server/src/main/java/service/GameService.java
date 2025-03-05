@@ -37,16 +37,52 @@ public class GameService {
             throw new DataAccessException("{message: Error: unauthorized}", 401);
         }
 
-        GameData newGame = new GameData(0, null, null, gameName, new ChessGame());
+        GameData newGame = new GameData(0, null, null, "gameName", new ChessGame());
         int gameID = dataAccess.createGame(newGame);
-        return new CreateGameResult(gameID);
+        return new CreateGameResult(gameID).gameID();
     }
 
-    public GameData getGame(int gameID) {
-        return dataAccess.getGame(gameID);
+    public void joinGame(String authToken, int gameID, String playerColor) throws DataAccessException {
+        if (authToken == null || authToken.isEmpty() || playerColor == null || playerColor.isEmpty()) {
+            throw new DataAccessException("{message: Error: bad request}", 400);
+        }
+
+        AuthData authData = dataAccess.getAuth(authToken);
+        if (authData == null) {
+            throw new DataAccessException("{message: Error: unauthorized}", 401);
+        }
+
+        GameData game = dataAccess.getGame(gameID);
+        if (game == null) {
+            throw new DataAccessException("{message: Error: game not found}", 404);
+        }
+
+        GameData updatedGame = getGameData(playerColor, game, authData);
+
+        // Save the updated game state
+        dataAccess.updateGame(updatedGame);
     }
 
-    public boolean updateGame(GameData game) {
-        return dataAccess.updateGame(game) != null;
+    private static GameData getGameData(String playerColor, GameData game, AuthData authData) throws DataAccessException {
+        String whitePlayer = game.whiteUsername();
+        String blackPlayer = game.blackUsername();
+
+        // Assign player to the requested color if available
+        if (playerColor.equalsIgnoreCase("white")) {
+            if (whitePlayer != null) {
+                throw new DataAccessException("{message: Error: white player already taken}", 403);
+            }
+            whitePlayer = authData.username();
+        } else if (playerColor.equalsIgnoreCase("black")) {
+            if (blackPlayer != null) {
+                throw new DataAccessException("{message: Error: black player already taken}", 403);
+            }
+            blackPlayer = authData.username();
+        } else {
+            throw new DataAccessException("{message: Error: invalid player color}", 400);
+        }
+
+        return new GameData(game.gameID(), whitePlayer, blackPlayer, game.gameName(), game.game());
     }
+
 }

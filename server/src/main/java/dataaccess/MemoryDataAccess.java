@@ -36,23 +36,23 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public boolean createGame(GameData game) {
+    public Integer createGame(GameData game) throws DataAccessException {
         if (!games.containsKey(game.gameID())) {
             games.put(game.gameID(), game);
-            return true;
+            return game.gameID();
         }
-        return false;
+        throw new DataAccessException("{message: Error: bad request}", 400);
     }
 
-    @Override
-    public GameData getGame(String id) {
-        return null;
-    }
-
-    @Override
-    public GameData getGame(int id) {
-        return null;
-    }
+//    @Override
+//    public GameData getGame(String id) {
+//        return null;
+//    }
+//
+//    @Override
+//    public GameData getGame(int id) {
+//        return null;
+//    }
 
     @Override
     public GameData getGame(Integer id) {

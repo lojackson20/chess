@@ -15,11 +15,11 @@ public interface DataAccess {
     UserData getUser(String username);
 
     // create game, get game, list game, update game
-    boolean createGame(GameData game);
+    Integer createGame(GameData game) throws DataAccessException;
 
-    GameData getGame(String id);
+//    GameData getGame(String id);
 
-    GameData getGame(int id);
+//    GameData getGame(int id);
 
     GameData getGame(Integer id);
 

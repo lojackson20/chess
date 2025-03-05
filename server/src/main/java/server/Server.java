@@ -40,7 +40,7 @@ public class Server {
         Spark.delete("/session", this::logoutUser);
         Spark.get("/game", this::listGames);
         Spark.post("/game", this::createGame);
-//        Spark.put("/game", this::joinGame);
+        Spark.put("/game", this::joinGame);
 
         Spark.exception(DataAccessException.class, this::exceptionHandler);
 
@@ -98,7 +98,7 @@ public class Server {
     }
 
 
-    private Object createGame(Request request, Response response) {
+    private Object createGame(Request request, Response response) throws DataAccessException {
         String authToken = request.headers("Authorization");
         AuthData authData = userService.dataAccess.getAuth(authToken);
         if (authData == null) {
@@ -110,49 +110,43 @@ public class Server {
         int gameID = generateUniqueGameID();
         GameData newGame = new GameData(gameID, null, null, gameRequest.gameName(), new ChessGame());
 
-        if (!userService.dataAccess.createGame(newGame)) {
-            response.status(400);
-            return new Gson().toJson("{message: \"Error: game creation failed\"}");
-        }
+//        if (!userService.dataAccess.createGame(newGame)) {
+//            response.status(400);
+//            return new Gson().toJson("{message: \"Error: game creation failed\"}");
+//        }
 
         response.status(200);
         return new Gson().toJson(new CreateGameResult(gameID));
     }
 
-
-//    private Object joinGame(Request request, Response response) {
-//        String authToken = request.headers("Authorization");
-//        AuthData authData = dataAccess.getAuth(authToken);
-//        if (authData == null) {
-//            response.status(401);
-//            return new Gson().toJson("{message: \"Error: unauthorized\"}");
-//        }
-//
-//        JoinGameRequest joinRequest = new Gson().fromJson(request.body(), JoinGameRequest.class);
-//        GameData game = dataAccess.getGame(joinRequest.gameID());
-//        if (game == null) {
-//            response.status(400);
-//            return new Gson().toJson("{message: \"Error: game not found\"}");
-//        }
-//
-//        GameData updatedGame;
-//        if (joinRequest.playerColor().equals("WHITE") && game.whiteUsername() == null) {
-//            updatedGame = new GameData(game.gameID(), authData.username(), game.blackUsername(), game.gameName(), game.game());
-//        } else if (joinRequest.playerColor().equals("BLACK") && game.blackUsername() == null) {
-//            updatedGame = new GameData(game.gameID(), game.whiteUsername(), authData.username(), game.gameName(), game.game());
-//        } else {
-//            response.status(403);
-//            return new Gson().toJson("{message: \"Error: seat already taken\"}");
-//        }
-//
-//        dataAccess.updateGame(updatedGame);
-//        response.status(200);
-//        return new Gson().toJson("{message: \"Joined game successfully\"}");
-//    }
-
     private int generateUniqueGameID() {
         return (int) (Math.random() * 1000000);
     }
+
+    private Object joinGame(Request request, Response response) throws DataAccessException {
+        String authToken = request.headers("Authorization");
+        if (authToken == null || authToken.isEmpty()) {
+            response.status(401);
+            return new Gson().toJson("{message: \"Error: unauthorized\"}");
+        }
+
+        JoinGameRequest joinRequest = new Gson().fromJson(request.body(), JoinGameRequest.class);
+        if (joinRequest == null || joinRequest.gameID() == null || joinRequest.playerColor() == null) {
+            response.status(400);
+            return new Gson().toJson("{message: \"Error: bad request\"}");
+        }
+
+        try {
+            gameService.joinGame(authToken, joinRequest.gameID(), joinRequest.playerColor());
+            response.status(200);
+            return new Gson().toJson("{message: \"Joined game successfully\"}");
+        } catch (DataAccessException e) {
+            response.status(e.StatusCode());
+            return new Gson().toJson(e.toJson());
+        }
+    }
+
+
 
 
     public void stop() {
