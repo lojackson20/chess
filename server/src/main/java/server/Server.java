@@ -2,6 +2,7 @@ package server;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import dataaccess.DataAccessException;
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
@@ -60,9 +61,9 @@ public class Server {
 
 
     private Object clearApp(Request request, Response response) {
-//        dataAccess.clear();
-//        response.status(200);
-        return new Gson().toJson("{message: \"Database cleared successfully\"}");
+        userService.clearData();
+        response.status(200);
+        return new JsonObject();
     }
 
     private Object registerUser(Request request, Response response) throws DataAccessException {

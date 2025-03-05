@@ -15,6 +15,10 @@ import model.GameData;
 public class UserService {
     public final DataAccess dataAccess;
 
+    public void clearData() {
+        dataAccess.clear();
+    }
+
     public UserService(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
     }
