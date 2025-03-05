@@ -66,7 +66,7 @@ public class ServiceTest {
     void createGame() throws DataAccessException {
         RegisterResult registerResult = userService.registerUser(new RegisterRequest("username", "password", "lukeoj@byu.edu"));
 
-        Integer gameID = gameService.createGame(registerResult.authToken());
+        CreateGameResult gameID = gameService.createGame(registerResult.authToken());
         assertNotNull(gameID);
     }
 
@@ -85,7 +85,7 @@ public class ServiceTest {
 //        gameService.listGames(registerResult.authToken());
         ListGamesResult listGamesResult = gameService.listGames(registerResult.authToken());
         assertNotNull(listGamesResult);
-        assertFalse(listGamesResult.gameList().isEmpty());
+        assertFalse(listGamesResult.games().isEmpty());
     }
 
     @Test
@@ -99,8 +99,8 @@ public class ServiceTest {
     void joinGame() throws DataAccessException {
         RegisterResult registerResult = userService.registerUser(new RegisterRequest("username", "password", "lukeoj@byu.edu"));
 
-        Integer gameID = gameService.createGame(registerResult.authToken());
-        JoinGameResult joinGameResult = gameService.joinGame(registerResult.authToken(), gameID, "Black");
+        CreateGameResult gameID = gameService.createGame(registerResult.authToken());
+        JoinGameResult joinGameResult = gameService.joinGame(registerResult.authToken(), gameID.gameID(), "Black");
         assertNull(joinGameResult);
     }
 

@@ -8,7 +8,7 @@ import model.GameData;
 
 public class GameService {
     private final DataAccess dataAccess;
-    private Integer IDNumber = 0;
+    private Integer IDNumber = 1;
 
     public GameService(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
@@ -26,7 +26,7 @@ public class GameService {
         return new ListGamesResult(dataAccess.listGames(null));
     }
 
-    public Integer createGame(String authToken) throws DataAccessException {
+    public CreateGameResult createGame(String authToken) throws DataAccessException {
         if (authToken == null || authToken.isEmpty()) {
             throw new DataAccessException("Error: bad request", 400);
         }
@@ -38,7 +38,7 @@ public class GameService {
 
         GameData newGame = new GameData(IDNumber++, null, null, "gameName", new ChessGame());
         int gameID = dataAccess.createGame(newGame);
-        return new CreateGameResult(gameID).gameID();
+        return new CreateGameResult(gameID);
     }
 
     public JoinGameResult joinGame(String authToken, int gameID, String playerColor) throws DataAccessException {

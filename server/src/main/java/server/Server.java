@@ -107,10 +107,10 @@ public class Server {
         }
 
         CreateGameRequest gameRequest = new Gson().fromJson(request.body(), CreateGameRequest.class);
-        int gameID = gameService.createGame(authToken);
-        GameData newGame = new GameData(gameID, null, null, gameRequest.gameName(), new ChessGame());
+        CreateGameResult gameID = gameService.createGame(authToken);
+//        GameData newGame = new GameData(gameID, null, null, gameRequest.gameName(), new ChessGame());
 
-        return new Gson().toJson(new CreateGameResult(gameID));
+        return new Gson().toJson(gameID);
     }
 
     private int generateUniqueGameID() {
