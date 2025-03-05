@@ -107,7 +107,7 @@ public class Server {
         }
 
         CreateGameRequest gameRequest = new Gson().fromJson(request.body(), CreateGameRequest.class);
-        int gameID = generateUniqueGameID();
+        int gameID = gameService.createGame(authToken);
         GameData newGame = new GameData(gameID, null, null, gameRequest.gameName(), new ChessGame());
 
         return new Gson().toJson(new CreateGameResult(gameID));
@@ -120,24 +120,18 @@ public class Server {
     private Object joinGame(Request request, Response response) throws DataAccessException {
         String authToken = request.headers("Authorization");
         if (authToken == null || authToken.isEmpty()) {
-            response.status(401);
-            return new Gson().toJson("{message: \"Error: unauthorized\"}");
+            throw new DataAccessException("Error: unauthorized", 401);
         }
 
         JoinGameRequest joinRequest = new Gson().fromJson(request.body(), JoinGameRequest.class);
         if (joinRequest == null || joinRequest.gameID() == null || joinRequest.playerColor() == null) {
             response.status(400);
-            return new Gson().toJson("{message: \"Error: bad request\"}");
+            throw new DataAccessException("Error: bad request", 400);
         }
 
-        try {
-            gameService.joinGame(authToken, joinRequest.gameID(), joinRequest.playerColor());
-            response.status(200);
-            return new Gson().toJson("{message: \"Joined game successfully\"}");
-        } catch (DataAccessException e) {
-            response.status(e.StatusCode());
-            return new Gson().toJson(e.toJson());
-        }
+        JoinGameResult joinResult = gameService.joinGame(authToken, joinRequest.gameID(), joinRequest.playerColor());
+        return new JsonObject();
+
     }
 
 

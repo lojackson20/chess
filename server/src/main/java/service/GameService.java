@@ -8,6 +8,7 @@ import model.GameData;
 
 public class GameService {
     private final DataAccess dataAccess;
+    private Integer IDNumber = 0;
 
     public GameService(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
@@ -35,7 +36,7 @@ public class GameService {
             throw new DataAccessException("Error: unauthorized", 401);
         }
 
-        GameData newGame = new GameData(0, null, null, "gameName", new ChessGame());
+        GameData newGame = new GameData(IDNumber++, null, null, "gameName", new ChessGame());
         int gameID = dataAccess.createGame(newGame);
         return new CreateGameResult(gameID).gameID();
     }
@@ -57,9 +58,8 @@ public class GameService {
 
         GameData updatedGame = getGameData(playerColor, game, authData);
 
-        // Save the updated game state
         dataAccess.updateGame(updatedGame);
-        return null;
+        return new JoinGameResult();
     }
 
     private static GameData getGameData(String playerColor, GameData game, AuthData authData) throws DataAccessException {
