@@ -185,40 +185,6 @@ public class ChessGame {
         return false;
     }
 
-//    public boolean isInCheck(TeamColor teamColor) {
-//        ChessPosition kingPosition = null;
-//
-//        for (int row = 1; row <= 8; row++) {
-//            for (int col = 1; col <= 8; col ++) {
-//                ChessPosition position = new ChessPosition(row, col);
-//                ChessPiece piece = board.getPiece(position);
-//                if (piece != null && piece.getTeamColor() == teamColor && piece.getPieceType() == ChessPiece.PieceType.KING) {
-//                    kingPosition = position;
-//                    break;
-//                }
-//            }
-//        }
-//        if (kingPosition == null) {
-//            return false;
-//        }
-//
-//        TeamColor opponentColor = (teamColor == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
-//        for (int row = 1; row <= 8; row++) {
-//            for (int col = 1; col <=8; col++) {
-//                ChessPosition position = new ChessPosition(row, col);
-//                ChessPiece piece = board.getPiece(position);
-//                if (piece != null && piece.getTeamColor() == opponentColor) {
-//                    Collection<ChessMove> moves = piece.pieceMoves(board, position);
-//                    for (ChessMove move : moves) {
-//                        if (move.getEndPosition().equals(kingPosition)) {
-//                            return true;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        return false;
-//    }
 
     /**
      * Determines if the given team is in checkmate
