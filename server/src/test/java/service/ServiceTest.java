@@ -20,6 +20,15 @@ public class ServiceTest {
     }
 
     @Test
+    void clear() throws DataAccessException {
+        RegisterResult registerResult = userService.registerUser(new RegisterRequest("username", "password", "lukeoj@byu.edu"));
+        CreateGameResult gameID = gameService.createGame(registerResult.authToken(), "game1");
+        ListGamesResult listGamesResult = gameService.listGames(registerResult.authToken());
+        userService.clearData();
+        assertNotNull(listGamesResult);
+    }
+
+    @Test
     void registerUser() throws DataAccessException {
         RegisterResult registerResult = userService.registerUser(new RegisterRequest("username", "password", "lukeoj@byu.edu"));
         assertEquals("username", registerResult.username());
