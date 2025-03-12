@@ -80,5 +80,23 @@ public class MySqlDataAccess implements DataAccess {
         return null;
     }
 
+    @Override
+    public ArrayList<GameData> listGames(GameData games) throws ResponseException {
+        var result = new ArrayList<GameData>();
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT json FROM games";
+            try (var ps = conn.prepareStatement(statement)) {
+                try (var rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        result.add(new Gson().fromJson(rs.getString("json"), GameData.class));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new ResponseException(500, "Unable to read data: " + e.getMessage());
+        }
+        return result;
+    }
+
 }
 
