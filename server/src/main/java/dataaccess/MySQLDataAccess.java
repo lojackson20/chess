@@ -106,5 +106,12 @@ public class MySqlDataAccess implements DataAccess {
         return game;
     }
 
+    @Override
+    public boolean createAuth(AuthData auth) throws ResponseException {
+        var statement = "INSERT INTO auths (authToken, json) VALUES (?, ?)";
+        var json = new Gson().toJson(auth);
+        return executeUpdate(statement, auth.authToken(), json) > 0;
+    }
+
 }
 
