@@ -62,7 +62,23 @@ public class MySqlDataAccess implements DataAccess {
         return executeUpdate(statement, game.gameID(), json);
     }
 
-
+    @Override
+    public GameData getGame(Integer id) throws ResponseException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT json FROM games WHERE gameID=?";
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setInt(1, id);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return new Gson().fromJson(rs.getString("json"), GameData.class);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new ResponseException(500, "Unable to read data: " + e.getMessage());
+        }
+        return null;
+    }
 
 }
 
