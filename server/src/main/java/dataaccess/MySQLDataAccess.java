@@ -55,6 +55,13 @@ public class MySqlDataAccess implements DataAccess {
         return null;
     }
 
+    @Override
+    public Integer createGame(GameData game) throws ResponseException {
+        var statement = "INSERT INTO games (gameID, json) VALUES (?, ?)";
+        var json = new Gson().toJson(game);
+        return executeUpdate(statement, game.gameID(), json);
+    }
+
 
 
 }
