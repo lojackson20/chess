@@ -131,5 +131,11 @@ public class MySqlDataAccess implements DataAccess {
         return null;
     }
 
+    @Override
+    public boolean deleteAuth(String auth) throws ResponseException {
+        var statement = "DELETE FROM auths WHERE authToken=?";
+        return executeUpdate(statement, auth) > 0;
+    }
+
 }
 
