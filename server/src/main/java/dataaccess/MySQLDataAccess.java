@@ -137,5 +137,31 @@ public class MySqlDataAccess implements DataAccess {
         return executeUpdate(statement, auth) > 0;
     }
 
+    private int executeUpdate(String statement, Object... params) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
+                for (var i = 0; i < params.length; i++) {
+                    if (params[i] instanceof String p) ps.setString(i + 1, p);
+                    else if (params[i] instanceof Integer p) ps.setInt(i + 1, p);
+                    else if (params[i] == null) ps.setNull(i + 1, NULL);
+                }
+                ps.executeUpdate();
+
+                var rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+                return 0;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Unable to update database: " + e.getMessage(), 500);
+        }
+    }
+
+    private void configureDatabase() throws DataAccessException {
+        DatabaseManager.createDatabase();
+        // Add SQL statements to create users, games, and auths tables if needed.
+    }
+
 }
 
