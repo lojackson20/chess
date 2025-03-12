@@ -98,5 +98,13 @@ public class MySqlDataAccess implements DataAccess {
         return result;
     }
 
+    @Override
+    public GameData updateGame(GameData game) throws ResponseException {
+        var statement = "UPDATE games SET json=? WHERE gameID=?";
+        var json = new Gson().toJson(game);
+        executeUpdate(statement, json, game.gameID());
+        return game;
+    }
+
 }
 
