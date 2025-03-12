@@ -29,5 +29,13 @@ public class MySqlDataAccess implements DataAccess {
         executeUpdate("TRUNCATE auths");
     }
 
+    @Override
+    public boolean createUser(UserData user) throws ResponseException {
+        var statement = "INSERT INTO users (username, password, json) VALUES (?, ?, ?)";
+        var json = new Gson().toJson(user);
+        int id = executeUpdate(statement, user.username(), user.password(), json);
+        return id > 0;
+    }
+
 }
 
