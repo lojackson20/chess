@@ -113,5 +113,23 @@ public class MySqlDataAccess implements DataAccess {
         return executeUpdate(statement, auth.authToken(), json) > 0;
     }
 
+    @Override
+    public AuthData getAuth(String auth) throws ResponseException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT json FROM auths WHERE authToken=?";
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setString(1, auth);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return new Gson().fromJson(rs.getString("json"), AuthData.class);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new ResponseException(500, "Unable to read data: " + e.getMessage());
+        }
+        return null;
+    }
+
 }
 
