@@ -37,5 +37,25 @@ public class MySqlDataAccess implements DataAccess {
         return id > 0;
     }
 
+    @Override
+    public UserData getUser(String username) throws ResponseException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT json FROM users WHERE username=?";
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setString(1, username);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return new Gson().fromJson(rs.getString("json"), UserData.class);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new ResponseException(500, "Unable to read data: " + e.getMessage());
+        }
+        return null;
+    }
+
+
+
 }
 
