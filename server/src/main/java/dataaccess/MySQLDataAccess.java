@@ -18,6 +18,7 @@ public class MySQLDataAccess implements DataAccess {
 
     public MySQLDataAccess() throws DataAccessException {
         DatabaseManager.createDatabase();
+        configureDatabase();
     }
 
 
