@@ -139,6 +139,9 @@ public class MySQLDataAccess implements DataAccess {
     @Override
     public boolean deleteAuth(String auth) throws DataAccessException {
         var statement = "DELETE FROM auths WHERE authToken=?";
+        if (getAuth(auth) == null) {
+            throw new DataAccessException("Unauthorized: Invalid auth token", 401);
+        }
         return executeUpdate(statement, auth) > 0;
     }
 
