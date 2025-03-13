@@ -160,7 +160,35 @@ public class MySqlDataAccess implements DataAccess {
 
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
-        // Add SQL statements to create users, games, and auths tables if needed.
+        String[] createStatements = {
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                  username VARCHAR(256) PRIMARY KEY,
+                  password VARCHAR(256) NOT NULL,
+                  json TEXT NOT NULL
+                )""",
+                """
+                CREATE TABLE IF NOT EXISTS games (
+                  gameID INT PRIMARY KEY,
+                  json TEXT NOT NULL
+                )""",
+                """
+                CREATE TABLE IF NOT EXISTS auths (
+                  authToken VARCHAR(256) PRIMARY KEY,
+                  json TEXT NOT NULL
+                )"""
+        };
+        try (var conn = DatabaseManager.getConnection()) {
+            for (var statement : createStatements) {
+                try (var preparedStatement = conn.prepareStatement(statement)) {
+                    preparedStatement.executeUpdate();
+                }
+            }
+        } catch (SQLException ex) {
+            throw new DataAccessException("Unable to configure database: " + ex.getMessage(), 500);
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
