@@ -78,7 +78,7 @@ public class UserService {
         }
 
         boolean notRemoved = dataAccess.deleteAuth(authToken);
-        if (notRemoved) {
+        if (!notRemoved) {
             throw new DataAccessException("{message: Error: internal server error}", 500);
         }
 
