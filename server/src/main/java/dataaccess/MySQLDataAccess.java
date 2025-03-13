@@ -1,36 +1,35 @@
 package dataaccess;
 
 import com.google.gson.Gson;
-import exception.ResponseException;
+//import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 
+
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
 
 
-public class MySqlDataAccess implements DataAccess {
+public class MySQLDataAccess implements DataAccess {
 
-    public MySqlDataAccess() throws ResponseException {
-        configureDatabase();
+    public MySQLDataAccess() throws DataAccessException {
+        DatabaseManager.createDatabase();
     }
 
 
     @Override
-    public void clear() throws ResponseException {
+    public void clear() throws DataAccessException {
         executeUpdate("TRUNCATE users");
         executeUpdate("TRUNCATE games");
         executeUpdate("TRUNCATE auths");
     }
 
     @Override
-    public boolean createUser(UserData user) throws ResponseException {
+    public boolean createUser(UserData user) throws DataAccessException {
         var statement = "INSERT INTO users (username, password, json) VALUES (?, ?, ?)";
         var json = new Gson().toJson(user);
         int id = executeUpdate(statement, user.username(), user.password(), json);
@@ -38,7 +37,7 @@ public class MySqlDataAccess implements DataAccess {
     }
 
     @Override
-    public UserData getUser(String username) throws ResponseException {
+    public UserData getUser(String username) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var statement = "SELECT json FROM users WHERE username=?";
             try (var ps = conn.prepareStatement(statement)) {
@@ -50,20 +49,20 @@ public class MySqlDataAccess implements DataAccess {
                 }
             }
         } catch (Exception e) {
-            throw new ResponseException(500, "Unable to read data: " + e.getMessage());
+            throw new DataAccessException("Unable to read data: " + e.getMessage(), 500);
         }
         return null;
     }
 
     @Override
-    public Integer createGame(GameData game) throws ResponseException {
+    public Integer createGame(GameData game) throws DataAccessException {
         var statement = "INSERT INTO games (gameID, json) VALUES (?, ?)";
         var json = new Gson().toJson(game);
         return executeUpdate(statement, game.gameID(), json);
     }
 
     @Override
-    public GameData getGame(Integer id) throws ResponseException {
+    public GameData getGame(Integer id) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var statement = "SELECT json FROM games WHERE gameID=?";
             try (var ps = conn.prepareStatement(statement)) {
@@ -75,13 +74,13 @@ public class MySqlDataAccess implements DataAccess {
                 }
             }
         } catch (Exception e) {
-            throw new ResponseException(500, "Unable to read data: " + e.getMessage());
+            throw new DataAccessException("Unable to read data: " + e.getMessage(), 500);
         }
         return null;
     }
 
     @Override
-    public ArrayList<GameData> listGames(GameData games) throws ResponseException {
+    public ArrayList<GameData> listGames(GameData games) throws DataAccessException {
         var result = new ArrayList<GameData>();
         try (var conn = DatabaseManager.getConnection()) {
             var statement = "SELECT json FROM games";
@@ -93,13 +92,13 @@ public class MySqlDataAccess implements DataAccess {
                 }
             }
         } catch (Exception e) {
-            throw new ResponseException(500, "Unable to read data: " + e.getMessage());
+            throw new DataAccessException("Unable to read data: " + e.getMessage(), 500);
         }
         return result;
     }
 
     @Override
-    public GameData updateGame(GameData game) throws ResponseException {
+    public GameData updateGame(GameData game) throws DataAccessException {
         var statement = "UPDATE games SET json=? WHERE gameID=?";
         var json = new Gson().toJson(game);
         executeUpdate(statement, json, game.gameID());
@@ -107,14 +106,14 @@ public class MySqlDataAccess implements DataAccess {
     }
 
     @Override
-    public boolean createAuth(AuthData auth) throws ResponseException {
+    public boolean createAuth(AuthData auth) throws DataAccessException {
         var statement = "INSERT INTO auths (authToken, json) VALUES (?, ?)";
         var json = new Gson().toJson(auth);
         return executeUpdate(statement, auth.authToken(), json) > 0;
     }
 
     @Override
-    public AuthData getAuth(String auth) throws ResponseException {
+    public AuthData getAuth(String auth) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var statement = "SELECT json FROM auths WHERE authToken=?";
             try (var ps = conn.prepareStatement(statement)) {
@@ -126,13 +125,13 @@ public class MySqlDataAccess implements DataAccess {
                 }
             }
         } catch (Exception e) {
-            throw new ResponseException(500, "Unable to read data: " + e.getMessage());
+            throw new DataAccessException("Unable to read data: " + e.getMessage(), 500);
         }
         return null;
     }
 
     @Override
-    public boolean deleteAuth(String auth) throws ResponseException {
+    public boolean deleteAuth(String auth) throws DataAccessException {
         var statement = "DELETE FROM auths WHERE authToken=?";
         return executeUpdate(statement, auth) > 0;
     }

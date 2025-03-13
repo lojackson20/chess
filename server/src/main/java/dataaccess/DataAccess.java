@@ -7,12 +7,12 @@ import model.UserData;
 import java.util.ArrayList;
 
 public interface DataAccess {
-    void clear();
+    void clear() throws DataAccessException;
 
     // create user, get user
     boolean createUser(UserData user) throws DataAccessException;
 
-    UserData getUser(String username);
+    UserData getUser(String username) throws DataAccessException;
 
     // create game, get game, list game, update game
     Integer createGame(GameData game) throws DataAccessException;
@@ -21,17 +21,17 @@ public interface DataAccess {
 
 //    GameData getGame(int id);
 
-    GameData getGame(Integer id);
+    GameData getGame(Integer id) throws DataAccessException;
 
-    ArrayList<GameData> listGames(GameData games);
+    ArrayList<GameData> listGames(GameData games) throws DataAccessException;
 
-    GameData updateGame(GameData game);
+    GameData updateGame(GameData game) throws DataAccessException;
 
     // create auth, get auth, delete auth
-    boolean createAuth(AuthData auth);
+    boolean createAuth(AuthData auth) throws DataAccessException;
 
-    AuthData getAuth(String auth);
+    AuthData getAuth(String auth) throws DataAccessException;
 
-    boolean deleteAuth(String auth);
+    boolean deleteAuth(String auth) throws DataAccessException;
 
 }
