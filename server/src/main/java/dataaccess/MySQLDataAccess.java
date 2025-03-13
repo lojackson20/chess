@@ -29,12 +29,38 @@ public class MySQLDataAccess implements DataAccess {
         executeUpdate("TRUNCATE auths");
     }
 
+//    @Override
+//    public boolean createUser(UserData user) throws DataAccessException {
+//        var statement = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
+//        int id = executeUpdate(statement, user.username(), user.password(), user.email());
+//        return id > 0;
+//    }
+
     @Override
     public boolean createUser(UserData user) throws DataAccessException {
         var statement = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
-//        var json = new Gson().toJson(user);
-        int id = executeUpdate(statement, user.username(), user.password(), user.email());
-        return id > 0;
+        try (var conn = DatabaseManager.getConnection()) {
+            conn.setAutoCommit(false); // Start transaction
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setString(1, user.username());
+                ps.setString(2, user.password());
+                ps.setString(3, user.email());
+                int affectedRows = ps.executeUpdate();
+
+                if (affectedRows == 0) {
+                    conn.rollback();
+                    return false;
+                }
+
+                conn.commit();
+                return true;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw new DataAccessException("Error inserting user: " + e.getMessage(), 403);
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Database connection error: " + e.getMessage(), 403);
+        }
     }
 
     @Override
@@ -55,12 +81,50 @@ public class MySQLDataAccess implements DataAccess {
         return null;
     }
 
-    @Override
-    public Integer createGame(GameData game) throws DataAccessException {
-        var statement = "INSERT INTO games (gameID, json) VALUES (?, ?)";
-        var json = new Gson().toJson(game);
-        return executeUpdate(statement, game.gameID(), json);
+//    @Override
+//    public Integer createGame(GameData game) throws DataAccessException {
+//        var statement = "INSERT INTO games (gameID, json) VALUES (?, ?)";
+//        var json = new Gson().toJson(game);
+//        return executeUpdate(statement, game.gameID(), json);
+//    }
+@Override
+public Integer createGame(GameData game) throws DataAccessException {
+    var statement = "INSERT INTO games (whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?)";
+    var json = new Gson().toJson(game.game());
+    try (var conn = DatabaseManager.getConnection()) {
+        conn.setAutoCommit(false);
+        try (var ps = conn.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, game.whiteUsername());
+            ps.setString(2, game.blackUsername());
+            ps.setString(3, game.gameName());
+            ps.setString(4, json);
+            int affectedRows = ps.executeUpdate();
+
+            if (affectedRows == 0) {
+                conn.rollback();
+                throw new DataAccessException("Failed to insert game", 403);
+            }
+
+            // Retrieve generated gameID
+            try (var rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    int generatedID = rs.getInt(1);
+                    conn.commit();
+                    return generatedID;
+                } else {
+                    conn.rollback();
+                    throw new DataAccessException("Failed to retrieve game ID", 403);
+                }
+            }
+        } catch (SQLException e) {
+            conn.rollback();
+            throw new DataAccessException("Error inserting game: " + e.getMessage(), 403);
+        }
+    } catch (SQLException e) {
+        throw new DataAccessException("Database connection error: " + e.getMessage(), 403);
     }
+}
+
 
     @Override
     public GameData getGame(Integer id) throws DataAccessException {
@@ -75,7 +139,7 @@ public class MySQLDataAccess implements DataAccess {
                                 rs.getString("whiteUsername"),
                                 rs.getString("blackUsername"),
                                 rs.getString("gameName"),
-                                new Gson().fromJson(rs.getString("game"), ChessGame.class)  // Deserialize game JSON
+                                new Gson().fromJson(rs.getString("game"), ChessGame.class)
                         );
                     }
                 }
@@ -86,23 +150,46 @@ public class MySQLDataAccess implements DataAccess {
         return null;
     }
 
-    @Override
-    public ArrayList<GameData> listGames(GameData games) throws DataAccessException {
-        var result = new ArrayList<GameData>();
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT json FROM games";
-            try (var ps = conn.prepareStatement(statement)) {
-                try (var rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        result.add(new Gson().fromJson(rs.getString("json"), GameData.class));
-                    }
+//    @Override
+//    public ArrayList<GameData> listGames(GameData games) throws DataAccessException {
+//        var result = new ArrayList<GameData>();
+//        try (var conn = DatabaseManager.getConnection()) {
+//            var statement = "SELECT json FROM games";
+//            try (var ps = conn.prepareStatement(statement)) {
+//                try (var rs = ps.executeQuery()) {
+//                    while (rs.next()) {
+//                        result.add(new Gson().fromJson(rs.getString("json"), GameData.class));
+//                    }
+//                }
+//            }
+//        } catch (Exception e) {
+//            throw new DataAccessException("Unable to read data: " + e.getMessage(), 403);
+//        }
+//        return result;
+//    }
+@Override
+public ArrayList<GameData> listGames(GameData games) throws DataAccessException {
+    var result = new ArrayList<GameData>();
+    try (var conn = DatabaseManager.getConnection()) {
+        var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM games";
+        try (var ps = conn.prepareStatement(statement)) {
+            try (var rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(new GameData(
+                            rs.getInt("gameID"),
+                            rs.getString("whiteUsername"),
+                            rs.getString("blackUsername"),
+                            rs.getString("gameName"),
+                            new Gson().fromJson(rs.getString("game"), ChessGame.class)
+                    ));
                 }
             }
-        } catch (Exception e) {
-            throw new DataAccessException("Unable to read data: " + e.getMessage(), 403);
         }
-        return result;
+    } catch (Exception e) {
+        throw new DataAccessException("Unable to list games: " + e.getMessage(), 403);
     }
+    return result;
+}
 
     @Override
     public GameData updateGame(GameData game) throws DataAccessException {
@@ -112,11 +199,34 @@ public class MySQLDataAccess implements DataAccess {
         return game;
     }
 
-    @Override
-    public boolean createAuth(AuthData auth) throws DataAccessException {
-        var statement = "INSERT INTO auths (authToken, username) VALUES (?, ?)";
-        return executeUpdate(statement, auth.authToken(), auth.username()) > 0;
+//    @Override
+//    public boolean createAuth(AuthData auth) throws DataAccessException {
+//        var statement = "INSERT INTO auths (authToken, username) VALUES (?, ?)";
+//        return executeUpdate(statement, auth.authToken(), auth.username()) > 0;
+//    }
+@Override
+public boolean createAuth(AuthData auth) throws DataAccessException {
+    var statement = "INSERT INTO auths (authToken, username) VALUES (?, ?)";
+    try (var conn = DatabaseManager.getConnection()) {
+        conn.setAutoCommit(false);
+        try (var ps = conn.prepareStatement(statement)) {
+            ps.setString(1, auth.authToken());
+            ps.setString(2, auth.username());
+            int affectedRows = ps.executeUpdate();
+            if (affectedRows == 0) {
+                conn.rollback();
+                return false;
+            }
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            conn.rollback();
+            throw new DataAccessException("Error inserting auth token: " + e.getMessage(), 403);
+        }
+    } catch (SQLException e) {
+        throw new DataAccessException("Database connection error: " + e.getMessage(), 403);
     }
+}
 
     @Override
     public AuthData getAuth(String auth) throws DataAccessException {
@@ -136,14 +246,27 @@ public class MySQLDataAccess implements DataAccess {
         return null;
     }
 
-    @Override
-    public boolean deleteAuth(String auth) throws DataAccessException {
-        var statement = "DELETE FROM auths WHERE authToken=?";
-        if (getAuth(auth) == null) {
-            throw new DataAccessException("Unauthorized: Invalid auth token", 401);
+//    @Override
+//    public boolean deleteAuth(String auth) throws DataAccessException {
+//        var statement = "DELETE FROM auths WHERE authToken=?";
+//        if (getAuth(auth) == null) {
+//            throw new DataAccessException("Unauthorized: Invalid auth token", 401);
+//        }
+//        return executeUpdate(statement, auth) > 0;
+//    }
+@Override
+public boolean deleteAuth(String auth) throws DataAccessException {
+    var statement = "DELETE FROM auths WHERE authToken=?";
+    try (var conn = DatabaseManager.getConnection()) {
+        try (var ps = conn.prepareStatement(statement)) {
+            ps.setString(1, auth);
+            int affectedRows = ps.executeUpdate();
+            return affectedRows > 0;
         }
-        return executeUpdate(statement, auth) > 0;
+    } catch (SQLException e) {
+        throw new DataAccessException("Error deleting auth token: " + e.getMessage(), 403);
     }
+}
 
     private int executeUpdate(String statement, Object... params) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
@@ -200,7 +323,7 @@ public class MySQLDataAccess implements DataAccess {
                 }
             }
         } catch (SQLException ex) {
-            throw new DataAccessException("Unable to configure database: " + ex.getMessage(), 500);
+            throw new DataAccessException("Unable to configure database: " + ex.getMessage(), 403);
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }
