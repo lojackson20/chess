@@ -23,7 +23,7 @@ public class GameService {
         if (authData == null) {
             throw new DataAccessException("{message: Error: unauthorized}", 401);
         }
-        return new ListGamesResult(dataAccess.listGames(null));
+        return new ListGamesResult(dataAccess.listGames());
     }
 
     public CreateGameResult createGame(String authToken, String gameName) throws DataAccessException {

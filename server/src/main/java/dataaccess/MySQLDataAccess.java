@@ -137,7 +137,7 @@ public Integer createGame(GameData game) throws DataAccessException {
     }
 
 @Override
-public ArrayList<GameData> listGames(GameData games) throws DataAccessException {
+public ArrayList<GameData> listGames() throws DataAccessException {
     var result = new ArrayList<GameData>();
     try (var conn = DatabaseManager.getConnection()) {
         var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM games";

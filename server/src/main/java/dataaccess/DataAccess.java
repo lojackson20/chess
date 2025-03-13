@@ -23,7 +23,7 @@ public interface DataAccess {
 
     GameData getGame(Integer id) throws DataAccessException;
 
-    ArrayList<GameData> listGames(GameData games) throws DataAccessException;
+    ArrayList<GameData> listGames() throws DataAccessException;
 
     GameData updateGame(GameData game) throws DataAccessException;
 

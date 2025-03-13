@@ -51,7 +51,7 @@ public class MemoryDataAccess implements DataAccess {
 
 
     @Override
-    public ArrayList<GameData> listGames(GameData games) {
+    public ArrayList<GameData> listGames() {
         ArrayList<GameData> myList = new ArrayList<>(this.games.values());
         return myList;
     }
