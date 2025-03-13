@@ -11,6 +11,7 @@ import dataaccess.DataAccessException;
 import model.UserData;
 import model.AuthData;
 import model.GameData;
+import org.mindrot.jbcrypt.BCrypt;
 
 
 public class UserService {
@@ -34,7 +35,8 @@ public class UserService {
             throw new DataAccessException("{message: Error: bad request}", 400);
         }
 
-        UserData newUser = new UserData(registerRequest.username(), registerRequest.password(), registerRequest.email());
+        String hashedPassword = BCrypt.hashpw(registerRequest.password(), BCrypt.gensalt());
+        UserData newUser = new UserData(registerRequest.username(), hashedPassword, registerRequest.email());
         boolean userCreated = dataAccess.createUser(newUser);
 
         if (!userCreated) {
@@ -49,13 +51,14 @@ public class UserService {
     }
 
     public LoginResult loginUser(LoginRequest loginRequest) throws DataAccessException {
+        String hashedPassword = BCrypt.hashpw(loginRequest.password(), BCrypt.gensalt());
         if (loginRequest.username() == null || loginRequest.username().isEmpty()
-                || loginRequest.password() == null || loginRequest.password().isEmpty()) {
+                || hashedPassword == null || hashedPassword.isEmpty()) {
             throw new DataAccessException("message: Error: bad request", 400);
         }
 
         UserData user = dataAccess.getUser(loginRequest.username());
-        if (user == null || !user.password().equals(loginRequest.password())) {
+        if (user == null || !user.password().equals(hashedPassword)) {
             throw new DataAccessException("message: Error: unauthorized", 401);
         }
 
