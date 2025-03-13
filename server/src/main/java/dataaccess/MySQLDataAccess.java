@@ -1,4 +1,5 @@
 package dataaccess;
+import chess.ChessGame;
 import com.google.gson.Gson;
 //import exception.ResponseException;
 import model.AuthData;
@@ -39,12 +40,12 @@ public class MySQLDataAccess implements DataAccess {
     @Override
     public UserData getUser(String username) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT json FROM users WHERE username=?";
+            var statement = "SELECT username, password, email FROM users WHERE username=?";
             try (var ps = conn.prepareStatement(statement)) {
                 ps.setString(1, username);
                 try (var rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return new Gson().fromJson(rs.getString("json"), UserData.class);
+                        return new UserData(rs.getString("username"), rs.getString("password"), rs.getString("email"));
                     }
                 }
             }
@@ -64,12 +65,18 @@ public class MySQLDataAccess implements DataAccess {
     @Override
     public GameData getGame(Integer id) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT json FROM games WHERE gameID=?";
+            var statement = "SELECT gameID, whiteUsername, blackUSername, gameName, game FROM games WHERE gameID=?";
             try (var ps = conn.prepareStatement(statement)) {
                 ps.setInt(1, id);
                 try (var rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return new Gson().fromJson(rs.getString("json"), GameData.class);
+                        return new GameData(
+                                rs.getInt("gameID"),
+                                rs.getString("whiteUsername"),
+                                rs.getString("blackUsername"),
+                                rs.getString("gameName"),
+                                new Gson().fromJson(rs.getString("game"), ChessGame.class)  // Deserialize game JSON
+                        );
                     }
                 }
             }
@@ -114,12 +121,12 @@ public class MySQLDataAccess implements DataAccess {
     @Override
     public AuthData getAuth(String auth) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT json FROM auths WHERE authToken=?";
+            var statement = "SELECT authToken, username FROM auths WHERE authToken=?";
             try (var ps = conn.prepareStatement(statement)) {
                 ps.setString(1, auth);
                 try (var rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return new Gson().fromJson(rs.getString("json"), AuthData.class);
+                        return new AuthData(rs.getString("authToken"), rs.getString("username"));
                     }
                 }
             }
