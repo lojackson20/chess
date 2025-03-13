@@ -228,7 +228,7 @@ public boolean createAuth(AuthData auth) throws DataAccessException {
                 ps.setString(1, auth);
                 try (var rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return new AuthData(rs.getString("authToken"), rs.getString("username"));
+                        return new AuthData(rs.getString("username"), rs.getString("authToken"));
                     }
                 }
             }
