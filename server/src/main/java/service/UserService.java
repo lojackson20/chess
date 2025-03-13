@@ -58,7 +58,7 @@ public class UserService {
         }
 
         UserData user = dataAccess.getUser(loginRequest.username());
-        if (user == null || !user.password().equals(hashedPassword)) {
+        if (user == null || !BCrypt.checkpw(loginRequest.password(), user.password())) {
             throw new DataAccessException("message: Error: unauthorized", 401);
         }
 

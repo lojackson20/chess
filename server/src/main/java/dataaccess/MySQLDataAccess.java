@@ -1,7 +1,6 @@
 package dataaccess;
 import chess.ChessGame;
 import com.google.gson.Gson;
-//import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -10,7 +9,6 @@ import model.UserData;
 import java.sql.*;
 import java.util.ArrayList;
 
-import static com.mysql.cj.conf.PropertyKey.logger;
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
 
@@ -162,14 +160,7 @@ public ArrayList<GameData> listGames(GameData games) throws DataAccessException 
     return result;
 }
 
-//    @Override
-//    public GameData updateGame(GameData game) throws DataAccessException {
-//        // update this to
-//        var statement = "UPDATE games SET json=? WHERE gameID=?";
-//        var json = new Gson().toJson(game);
-//        executeUpdate(statement, json, game.gameID());
-//        return game;
-//    }
+
 @Override
 public GameData updateGame(GameData game) throws DataAccessException {
     String statement = "UPDATE games SET whiteUsername=?, blackUsername=?, gameName=?, game=? WHERE gameID=?";
@@ -193,7 +184,6 @@ public GameData updateGame(GameData game) throws DataAccessException {
 
     return game;
 }
-
 
 
     @Override
@@ -239,19 +229,6 @@ public boolean createAuth(AuthData auth) throws DataAccessException {
     }
 
 
-//@Override
-//public boolean deleteAuth(String auth) throws DataAccessException {
-//    var statement = "DELETE FROM auths WHERE authToken=?";
-//    try (var conn = DatabaseManager.getConnection()) {
-//        try (var ps = conn.prepareStatement(statement)) {
-//            ps.setString(1, auth);
-//            int affectedRows = ps.executeUpdate();
-//            return affectedRows > 0;
-//        }
-//    } catch (SQLException e) {
-//        throw new DataAccessException("Error: Error deleting auth token: " + e.getMessage(), 403);
-//    }
-//}
 @Override
 public boolean deleteAuth(String auth) throws DataAccessException {
     if (auth == null || auth.isEmpty()) {
