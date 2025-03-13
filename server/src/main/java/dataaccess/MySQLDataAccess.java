@@ -56,10 +56,10 @@ public class MySQLDataAccess implements DataAccess {
                 return true;
             } catch (SQLException e) {
                 conn.rollback();
-                throw new DataAccessException("Error inserting user: " + e.getMessage(), 403);
+                throw new DataAccessException("Error: Error inserting user: " + e.getMessage(), 403);
             }
         } catch (SQLException e) {
-            throw new DataAccessException("Database connection error: " + e.getMessage(), 403);
+            throw new DataAccessException("Error: Database connection error: " + e.getMessage(), 403);
         }
     }
 
@@ -76,7 +76,7 @@ public class MySQLDataAccess implements DataAccess {
                 }
             }
         } catch (Exception e) {
-            throw new DataAccessException("Unable to read data: " + e.getMessage(), 403);
+            throw new DataAccessException("Error: Unable to read data: " + e.getMessage(), 403);
         }
         return null;
     }
@@ -102,7 +102,7 @@ public Integer createGame(GameData game) throws DataAccessException {
 
             if (affectedRows == 0) {
                 conn.rollback();
-                throw new DataAccessException("Failed to insert game", 403);
+                throw new DataAccessException("Error: Failed to insert game", 403);
             }
 
             // Retrieve generated gameID
@@ -113,15 +113,15 @@ public Integer createGame(GameData game) throws DataAccessException {
                     return generatedID;
                 } else {
                     conn.rollback();
-                    throw new DataAccessException("Failed to retrieve game ID", 403);
+                    throw new DataAccessException("Error: Failed to retrieve game ID", 403);
                 }
             }
         } catch (SQLException e) {
             conn.rollback();
-            throw new DataAccessException("Error inserting game: " + e.getMessage(), 403);
+            throw new DataAccessException("Error: Error inserting game: " + e.getMessage(), 403);
         }
     } catch (SQLException e) {
-        throw new DataAccessException("Database connection error: " + e.getMessage(), 403);
+        throw new DataAccessException("Error: Database connection error: " + e.getMessage(), 403);
     }
 }
 
@@ -129,7 +129,7 @@ public Integer createGame(GameData game) throws DataAccessException {
     @Override
     public GameData getGame(Integer id) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT gameID, whiteUsername, blackUSername, gameName, game FROM games WHERE gameID=?";
+            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM games WHERE gameID=?";
             try (var ps = conn.prepareStatement(statement)) {
                 ps.setInt(1, id);
                 try (var rs = ps.executeQuery()) {
@@ -145,7 +145,7 @@ public Integer createGame(GameData game) throws DataAccessException {
                 }
             }
         } catch (Exception e) {
-            throw new DataAccessException("Unable to read data: " + e.getMessage(), 403);
+            throw new DataAccessException("Error: Unable to read data: " + e.getMessage(), 403);
         }
         return null;
     }
@@ -186,7 +186,7 @@ public ArrayList<GameData> listGames(GameData games) throws DataAccessException 
             }
         }
     } catch (Exception e) {
-        throw new DataAccessException("Unable to list games: " + e.getMessage(), 403);
+        throw new DataAccessException("Error: Unable to list games: " + e.getMessage(), 403);
     }
     return result;
 }
@@ -221,10 +221,10 @@ public boolean createAuth(AuthData auth) throws DataAccessException {
             return true;
         } catch (SQLException e) {
             conn.rollback();
-            throw new DataAccessException("Error inserting auth token: " + e.getMessage(), 403);
+            throw new DataAccessException("Error: Error inserting auth token: " + e.getMessage(), 403);
         }
     } catch (SQLException e) {
-        throw new DataAccessException("Database connection error: " + e.getMessage(), 403);
+        throw new DataAccessException("Error: Database connection error: " + e.getMessage(), 403);
     }
 }
 
@@ -241,7 +241,7 @@ public boolean createAuth(AuthData auth) throws DataAccessException {
                 }
             }
         } catch (Exception e) {
-            throw new DataAccessException("Unable to read data: " + e.getMessage(), 403);
+            throw new DataAccessException("Error: Unable to read data: " + e.getMessage(), 403);
         }
         return null;
     }
@@ -264,7 +264,7 @@ public boolean deleteAuth(String auth) throws DataAccessException {
             return affectedRows > 0;
         }
     } catch (SQLException e) {
-        throw new DataAccessException("Error deleting auth token: " + e.getMessage(), 403);
+        throw new DataAccessException("Error: Error deleting auth token: " + e.getMessage(), 403);
     }
 }
 
@@ -323,7 +323,7 @@ public boolean deleteAuth(String auth) throws DataAccessException {
                 }
             }
         } catch (SQLException ex) {
-            throw new DataAccessException("Unable to configure database: " + ex.getMessage(), 403);
+            throw new DataAccessException("Error: Unable to configure database: " + ex.getMessage(), 403);
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }
