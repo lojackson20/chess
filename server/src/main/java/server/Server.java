@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import dataaccess.DataAccessException;
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
+import dataaccess.MySQLDataAccess;
 import model.AuthData;
 import model.GameData;
 import service.*;
@@ -17,10 +18,10 @@ public class Server {
     private final UserService userService;
     private final GameService gameService;
 
-    public Server() {
-        MemoryDataAccess memoryDataAccess = new MemoryDataAccess();
-        this.userService = new UserService(memoryDataAccess);
-        this.gameService = new GameService(memoryDataAccess);
+    public Server() throws DataAccessException {
+        DataAccess dataAccess = new MySQLDataAccess();
+        this.userService = new UserService(dataAccess);
+        this.gameService = new GameService(dataAccess);
     }
 
     public Server(UserService userService, GameService gameService) {
