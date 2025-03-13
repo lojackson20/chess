@@ -17,7 +17,11 @@ public class UserService {
     public final DataAccess dataAccess;
 
     public void clearData() {
-        dataAccess.clear();
+        try {
+            dataAccess.clear();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public UserService(DataAccess dataAccess) {

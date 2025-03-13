@@ -18,8 +18,13 @@ public class Server {
     private final UserService userService;
     private final GameService gameService;
 
-    public Server() throws DataAccessException {
-        DataAccess dataAccess = new MySQLDataAccess();
+    public Server() {
+        DataAccess dataAccess = null;
+        try {
+            dataAccess = new MySQLDataAccess();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
         this.userService = new UserService(dataAccess);
         this.gameService = new GameService(dataAccess);
     }
