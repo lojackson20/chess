@@ -252,30 +252,35 @@ public boolean deleteAuth(String auth) throws DataAccessException {
     }
 }
 
+    private void executeUpdate(String statement, Object... params) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection();
+             var ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
 
+            setParameters(ps, params);
+            ps.executeUpdate();
+            processGeneratedKeys(ps);
 
-    private int executeUpdate(String statement, Object... params) throws DataAccessException {
-        try (var conn = DatabaseManager.getConnection()) {
-            try (var ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
-                for (var i = 0; i < params.length; i++) {
-                    switch (params[i]) {
-                        case String p -> ps.setString(i + 1, p);
-                        case Integer p -> ps.setInt(i + 1, p);
-                        case null -> ps.setNull(i + 1, NULL);
-                        default -> {
-                        }
-                    }
-                }
-                ps.executeUpdate();
-
-                var rs = ps.getGeneratedKeys();
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-                return 0;
-            }
         } catch (SQLException e) {
             throw new DataAccessException("Error: Unable to update database: " + e.getMessage(), 403);
+        }
+    }
+
+    private void setParameters(PreparedStatement ps, Object... params) throws SQLException {
+        for (var i = 0; i < params.length; i++) {
+            switch (params[i]) {
+                case String p -> ps.setString(i + 1, p);
+                case Integer p -> ps.setInt(i + 1, p);
+                case null -> ps.setNull(i + 1, NULL);
+                default -> {}
+            }
+        }
+    }
+
+    private void processGeneratedKeys(PreparedStatement ps) throws SQLException {
+        try (var rs = ps.getGeneratedKeys()) {
+            if (rs.next()) {
+                rs.getInt(1);
+            }
         }
     }
 
