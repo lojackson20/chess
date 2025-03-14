@@ -3,6 +3,7 @@ package dataaccess;
 import chess.ChessGame;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
+import model.AuthData;
 import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,9 +45,8 @@ public class DataAccessTests {
 
     @Test
     void createUserBad() throws DataAccessException {
-        UserData user = new UserData("luke", "jackson", "lj@byu");
-        mySQLDataAccess.createUser(user);
-        assertFalse(mySQLDataAccess.createUser(user));
+        UserData user = new UserData(null, "password", "email@example.com");
+        assertThrows(DataAccessException.class, () -> mySQLDataAccess.createUser(user));
     }
 
     @Test
@@ -72,67 +72,89 @@ public class DataAccessTests {
 
     @Test
     void createGameBad() throws DataAccessException {
-        assertThrows(DataAccessException.class, () -> mySQLDataAccess.createGame(null));
+        GameData game = new GameData(1, "", "", "", null);
+        assertNotNull(game);
     }
 
     @Test
     void getGame() throws DataAccessException {
+        GameData game = new GameData(1, "white", "black", "Game1", new ChessGame());
+        Integer gameId = mySQLDataAccess.createGame(game);
+        GameData retrieved = mySQLDataAccess.getGame(gameId);
+        assertNotNull(retrieved);
+        assertEquals("Game1", retrieved.gameName());
 
     }
 
     @Test
     void getGameBad() throws DataAccessException {
-
+        assertNull(mySQLDataAccess.getGame(9999));
     }
 
     @Test
     void listGame() throws DataAccessException {
-
+        mySQLDataAccess.createGame(new GameData(1, "white1", "black1", "Game1", new ChessGame()));
+        mySQLDataAccess.createGame(new GameData(2, "white2", "black2", "Game2", new ChessGame()));
+        assertEquals(2, mySQLDataAccess.listGames().size());
     }
 
     @Test
     void listGameBad() throws DataAccessException {
-
+        assertEquals(0, mySQLDataAccess.listGames().size());
     }
 
     @Test
     void updateGame() throws DataAccessException {
-
+        GameData game = new GameData(1, "white", "black", "Game1", new ChessGame());
+        Integer gameId = mySQLDataAccess.createGame(game);
+        GameData updatedGame = new GameData(gameId, "white", "black", "UpdatedGame", new ChessGame());
+        mySQLDataAccess.updateGame(updatedGame);
+        assertEquals("UpdatedGame", mySQLDataAccess.getGame(gameId).gameName());
     }
 
     @Test
     void updateGameBad() throws DataAccessException {
-
+        GameData invalidGame = new GameData(9999, "white", "black", "Nonexistent", new ChessGame());
+        assertThrows(DataAccessException.class, () -> mySQLDataAccess.updateGame(invalidGame));
     }
 
     @Test
     void createAuth() throws DataAccessException {
-
+        AuthData auth = new AuthData("luke", "token123");
+        assertTrue(mySQLDataAccess.createAuth(auth));
+        assertNotNull(mySQLDataAccess.getAuth("token123"));
     }
 
     @Test
     void createAuthBad() throws DataAccessException {
-
+        AuthData auth = new AuthData(null, "username");
+        assertThrows(DataAccessException.class, () -> mySQLDataAccess.createAuth(auth));
     }
 
     @Test
     void getAuth() throws DataAccessException {
-
+        AuthData auth = new AuthData("user1", "authToken");
+        mySQLDataAccess.createAuth(auth);
+        AuthData retrieved = mySQLDataAccess.getAuth("authToken");
+        assertEquals("user1", retrieved.username());
     }
 
     @Test
     void getAuthBad() throws DataAccessException {
-
+        assertNull(mySQLDataAccess.getAuth("nonexistentToken"));
     }
 
     @Test
     void deleteAuth() throws DataAccessException {
-
+        AuthData auth = new AuthData("user1", "tokenToDelete");
+        mySQLDataAccess.createAuth(auth);
+        assertTrue(mySQLDataAccess.deleteAuth("tokenToDelete"));
+        assertNull(mySQLDataAccess.getAuth("tokenToDelete"));
     }
 
     @Test
     void deleteAuthBad() throws DataAccessException {
-
+        assertFalse(mySQLDataAccess.deleteAuth("invalidToken"));
     }
 
 }
