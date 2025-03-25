@@ -1,6 +1,4 @@
 package ui;
 
-public enum Repl {
-    SIGNEDOUT,
-    SIGNEDIN
+public class Repl {
 }
