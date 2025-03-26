@@ -7,11 +7,18 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
-//import exception.ErrorResponse;
-//import exception.ResponseException;
+import exception.ErrorResponse;
+import exception.ResponseException;
+import model.AuthData;
 import model.GameData;
-//import model.Move;
-
+import model.JoinGameRequest;
+import model.CreateGameRequest;
+import model.ListGamesResult;
+import model.RegisterRequest;
+import model.RegisterResult;
+import model.LoginRequest;
+import model.LoginResult;
+import model.LogoutResult;
 import java.io.*;
 import java.net.*;
 
@@ -23,44 +30,62 @@ public class ServerFacade {
         serverUrl = url;
     }
 
-    public GameData createGame(GameData game) throws DataAccessException {
-        var path = "/game";
-        return this.makeRequest("POST", path, game, GameData.class);
+    public RegisterResult registerUser(RegisterRequest request) throws ResponseException {
+        var path = "/user";
+        return this.makeRequest("POST", path, request, RegisterResult.class);
     }
 
-    public void endGame(int id) throws DataAccessException {
-        var path = String.format("/game/%s", id);
+    public LoginResult loginUser(LoginRequest request) throws ResponseException {
+        var path = "/session";
+        return this.makeRequest("POST", path, request, LoginResult.class);
+    }
+
+    public void logoutUser(String authToken) throws ResponseException, DataAccessException {
+        var path = "/session";
+        this.makeRequestWithAuth("DELETE", path, authToken, null, null);
+    }
+
+    public ListGamesResult listGames(String authToken) throws DataAccessException {
+        var path = "/game";
+        return this.makeRequestWithAuth("GET", path, authToken, null, ListGamesResult.class);
+    }
+
+    public GameData createGame(String authToken, CreateGameRequest request) throws DataAccessException {
+        var path = "/game";
+        return this.makeRequestWithAuth("POST", path, authToken, request, GameData.class);
+    }
+
+    public void joinGame(String authToken, JoinGameRequest request) throws DataAccessException {
+        var path = "/game";
+        this.makeRequestWithAuth("PUT", path, authToken, request, null);
+    }
+
+    public void clearDatabase() throws DataAccessException {
+        var path = "/db";
         this.makeRequest("DELETE", path, null, null);
     }
 
-    public GameData getGameState(int id) throws DataAccessException {
-        var path = String.format("/game/%s/state", id);
-        return this.makeRequest("GET", path, null, GameData.class);
-    }
-
-//    public void makeMove(Move move) throws DataAccessException {
-//        var path = "/move";
-//        this.makeRequest("POST", path, move, null);
-//    }
-
-    public GameData[] listGames() throws DataAccessException {
-        var path = "/game";
-        record ListGamesResponse(GameData[] games) {}
-        var response = this.makeRequest("GET", path, null, ListGamesResponse.class);
-        return response.games();
-    }
-
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws DataAccessException {
+        return makeRequestWithAuth(method, path, null, request, responseClass);
+    }
+
+    private <T> T makeRequestWithAuth(String method, String path, String authToken, Object request, Class<T> responseClass) throws ResponseException, DataAccessException {
         try {
             URL url = (new URI(serverUrl + path)).toURL();
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
             http.setRequestMethod(method);
             http.setDoOutput(true);
 
+            if (authToken != null) {
+                http.setRequestProperty("Authorization", authToken);
+            }
+
             writeBody(request, http);
             http.connect();
             throwIfNotSuccessful(http);
             return readBody(http, responseClass);
+        } catch (DataAccessException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new DataAccessException(ex.getMessage(), 500);
         }
@@ -105,4 +130,3 @@ public class ServerFacade {
         return status / 100 == 2;
     }
 }
-
