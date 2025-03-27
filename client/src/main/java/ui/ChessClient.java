@@ -7,8 +7,11 @@ package ui;
 
 import java.util.Arrays;
 import com.google.gson.Gson;
+import server.Server;
 import server.ServerFacade;
 import dataaccess.DataAccessException;
+import service.LoginRequest;
+import service.RegisterRequest;
 
 
 public class ChessClient {
@@ -28,8 +31,8 @@ public class ChessClient {
         return switch (cmd) {
             case "register" -> registerUser(parameters);
             case "signin" -> signIn(parameters);
-            case "list" -> listGames();
-            case "create game" -> createGame(parameters);
+//            case "list" -> listGames();
+//            case "create game" -> createGame(parameters);
             case "join" -> joinGame(parameters);
             case "signout" -> signOut();
             case "quit" -> "quit";
@@ -38,22 +41,26 @@ public class ChessClient {
     }
 
     public String registerUser(String ... parameters) throws DataAccessException {
-        if (parameters.length >= 1) {
+        if (parameters.length == 3) {
             playerName = String.join("-", parameters);
-            return String.format("You signed in as %s.", playerName);
+//            return String.format("You signed in as %s.", playerName);
+            server.registerUser(new RegisterRequest(parameters[0], parameters[1], parameters[2]));
+            return "successfully registered!";
         }
-        throw new DataAccessException("Expected: <yourname>", 400);
+        throw new DataAccessException("Expected: register 'username', 'password', 'email'", 400);
     }
 
     public String signIn(String... params) throws DataAccessException {
-        if (params.length >= 1) {
+        if (params.length == 2) {
             playerName = String.join("-", params);
-            return String.format("You signed in as %s.", playerName);
+//            return String.format("You signed in as %s.", playerName);
+            server.loginUser(new LoginRequest(params[0], params[1]));
+            return "signed in successfully!";
         }
-        throw new DataAccessException("Expected: <yourname>", 400);
+        throw new DataAccessException("Expected: signin 'username' 'password'", 400);
     }
 
-    public String listGames() throws ResponseException {
+    public String listGames() throws DataAccessException {
         assertSignedIn();
         var games = server.listGames();
         var result = new StringBuilder();
@@ -64,40 +71,32 @@ public class ChessClient {
         return result.toString();
     }
 
-    public String createGame(String... params) throws ResponseException {
+    public String createGame(String... params) throws DataAccessException {
         assertSignedIn();
         if (params.length >= 1) {
             var gameName = String.join(" ", params);
             var gameID = server.createGame(gameName);
             return String.format("Game '%s' created with ID: %d", gameName, gameID);
         }
-        throw new ResponseException(400, "Expected: <game name>");
+        throw new DataAccessException("Expected: <game name>", 400);
     }
 
-    public String joinGame(String... params) throws ResponseException {
-        assertSignedIn();
+    public String joinGame(String... params) throws DataAccessException {
         if (params.length == 2) {
             var gameID = Integer.parseInt(params[0]);
             var color = params[1].toUpperCase();
-            server.joinGame(gameID, color);
+            server.joinGame(color, gameID);
             return String.format("You joined game %d as %s", gameID, color);
         }
-        throw new ResponseException(400, "Expected: <game id> <WHITE|BLACK>");
+        throw new DataAccessException("Expected: <game id> <WHITE|BLACK>", 400);
     }
 
-    public String signOut() throws ResponseException {
+    public String signOut() throws DataAccessException {
         assertSignedIn();
-        state = State.SIGNEDOUT;
         return String.format("%s signed out", playerName);
     }
 
     public String help() {
-        if (state == State.SIGNEDOUT) {
-            return """
-                    - signIn <yourname>
-                    - quit
-                    """;
-        }
         return """
                 - list
                 - create <game name>
