@@ -7,7 +7,6 @@ package ui;
 
 import java.util.Arrays;
 import com.google.gson.Gson;
-import exception.ResponseException;
 import server.ServerFacade;
 import dataaccess.DataAccessException;
 
@@ -16,31 +15,38 @@ public class ChessClient {
     private String playerName = null;
     private final ServerFacade server;
     private final String serverUrl;
-    private State state = State.SIGNEDOUT;
 
-    public ChessClient(String serverUrl) {
+    public ChessClient(String serverUrl, Repl repl) {
         server = new ServerFacade(serverUrl);
         this.serverUrl = serverUrl;
     }
 
-    public String eval(String input) {
+    public String eval(String input) throws DataAccessException {
         var tokens = input.toLowerCase().split(" ");
         var cmd = (tokens.length > 0) ? tokens[0] : "help";
-        var params = Arrays.copyOfRange(tokens, 1, tokens.length);
+        var parameters = Arrays.copyOfRange(tokens, 1, tokens.length);
         return switch (cmd) {
-            case "signin" -> signIn(params);
+            case "register" -> registerUser(parameters);
+            case "signin" -> signIn(parameters);
             case "list" -> listGames();
-            case "create" -> createGame(params);
-            case "join" -> joinGame(params);
+            case "create game" -> createGame(parameters);
+            case "join" -> joinGame(parameters);
             case "signout" -> signOut();
             case "quit" -> "quit";
             default -> help();
         };
     }
 
+    public String registerUser(String ... parameters) throws DataAccessException {
+        if (parameters.length >= 1) {
+            playerName = String.join("-", parameters);
+            return String.format("You signed in as %s.", playerName);
+        }
+        throw new DataAccessException("Expected: <yourname>", 400);
+    }
+
     public String signIn(String... params) throws DataAccessException {
         if (params.length >= 1) {
-            state = State.SIGNEDIN;
             playerName = String.join("-", params);
             return String.format("You signed in as %s.", playerName);
         }

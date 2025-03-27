@@ -7,18 +7,18 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
-import exception.ErrorResponse;
-import exception.ResponseException;
+//import exception.ErrorResponse;
+//import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
-import model.JoinGameRequest;
-import model.CreateGameRequest;
-import model.ListGamesResult;
-import model.RegisterRequest;
-import model.RegisterResult;
-import model.LoginRequest;
-import model.LoginResult;
-import model.LogoutResult;
+import service.JoinGameRequest;
+import service.CreateGameRequest;
+import service.ListGamesResult;
+import service.RegisterRequest;
+import service.RegisterResult;
+import service.LoginRequest;
+import service.LoginResult;
+import service.LogoutResult;
 import java.io.*;
 import java.net.*;
 
@@ -30,17 +30,17 @@ public class ServerFacade {
         serverUrl = url;
     }
 
-    public RegisterResult registerUser(RegisterRequest request) throws ResponseException {
+    public RegisterResult registerUser(RegisterRequest request) throws DataAccessException {
         var path = "/user";
         return this.makeRequest("POST", path, request, RegisterResult.class);
     }
 
-    public LoginResult loginUser(LoginRequest request) throws ResponseException {
+    public LoginResult loginUser(LoginRequest request) throws DataAccessException {
         var path = "/session";
         return this.makeRequest("POST", path, request, LoginResult.class);
     }
 
-    public void logoutUser(String authToken) throws ResponseException, DataAccessException {
+    public void logoutUser(String authToken) throws DataAccessException {
         var path = "/session";
         this.makeRequestWithAuth("DELETE", path, authToken, null, null);
     }
@@ -69,7 +69,7 @@ public class ServerFacade {
         return makeRequestWithAuth(method, path, null, request, responseClass);
     }
 
-    private <T> T makeRequestWithAuth(String method, String path, String authToken, Object request, Class<T> responseClass) throws ResponseException, DataAccessException {
+    private <T> T makeRequestWithAuth(String method, String path, String authToken, Object request, Class<T> responseClass) throws DataAccessException {
         try {
             URL url = (new URI(serverUrl + path)).toURL();
             HttpURLConnection http = (HttpURLConnection) url.openConnection();

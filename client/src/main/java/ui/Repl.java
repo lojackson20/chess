@@ -1,27 +1,8 @@
-//package ui;
-
-//import com.sun.nio.sctp.NotificationHandler;
-//
-//public class Repl {
-//    public Repl(String serverUrl) {
-//    }
-//
-//    public void run() {
-//    }
-//}
-
 package ui;
+import static ui.EscapeSequences.*;
+import java.util.Scanner;
 
-//import client.websocket.NotificationHandler;
-//import webSocketMessages.Notification;
-
-//import java.util.Scanner;
-
-//import static client.EscapeSequences.*;
-
-import com.sun.nio.sctp.NotificationHandler;
-
-public class Repl implements NotificationHandler {
+public class Repl {
     private final ChessClient client;
 
     public Repl(String serverUrl) {
@@ -40,7 +21,7 @@ public class Repl implements NotificationHandler {
 
             try {
                 result = client.eval(line);
-                System.out.print(BLUE + result);
+                System.out.print(SET_TEXT_COLOR_GREEN + result);
             } catch (Throwable e) {
                 var msg = e.toString();
                 System.out.print(msg);
@@ -49,13 +30,13 @@ public class Repl implements NotificationHandler {
         System.out.println();
     }
 
-    public void notify(Notification notification) {
-        System.out.println(RED + notification.message());
-        printPrompt();
-    }
+//    public void notify(Notification notification) {
+//        System.out.println(RED + notification.message());
+//        printPrompt();
+//    }
 
     private void printPrompt() {
-        System.out.print("\n" + RESET + ">>> " + GREEN);
+        System.out.print("\n" + RESET_TEXT_COLOR + ">>> " + SET_TEXT_COLOR_MAGENTA);
     }
 }
 
