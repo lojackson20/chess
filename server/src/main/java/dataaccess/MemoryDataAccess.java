@@ -82,6 +82,6 @@ public class MemoryDataAccess implements DataAccess {
     @Override
     public boolean deleteAuth(String auth) {
         auths.remove(auth);
-        return false;
+        return true;
     }
 }

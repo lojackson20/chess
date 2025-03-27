@@ -6,7 +6,7 @@ public class Repl {
     private final ChessClient client;
 
     public Repl(String serverUrl) {
-        client = new ChessClient(serverUrl, this);
+        client = new ChessClient(serverUrl);
     }
 
     public void run() {
@@ -20,7 +20,7 @@ public class Repl {
             String line = scanner.nextLine();
 
             try {
-                result = client.eval(line);
+                result = client.evalPreLogin(line);
                 System.out.print(SET_TEXT_COLOR_GREEN + result);
             } catch (Throwable e) {
                 var msg = e.toString();
