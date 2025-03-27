@@ -60,6 +60,11 @@ public class ServerFacade {
         this.makeRequestWithAuth("PUT", path, authToken, request, null);
     }
 
+    public void observeGame(String authToken, Integer gameID) throws DataAccessException {
+        var path = "/game";
+        this.makeRequestWithAuth("GET", path, authToken, gameID, null);
+    }
+
     public void clearDatabase() throws DataAccessException {
         var path = "/db";
         this.makeRequest("DELETE", path, null, null);

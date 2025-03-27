@@ -17,6 +17,7 @@ public class ChessClient {
     private String playerName = null;
     private String authToken = null;
     private final ServerFacade server;
+    private State state = State.SIGNEDOUT;
 
     public ChessClient(String serverUrl) {
         server = new ServerFacade(serverUrl);
@@ -29,16 +30,6 @@ public class ChessClient {
         return switch (cmd) {
             case "register" -> registerUser(parameters);
             case "signin" -> signIn(parameters);
-            case "quit" -> "Goodbye!";
-            default -> help();
-        };
-    }
-
-    public String evalPostLogin(String input) throws DataAccessException {
-        var tokens = input.trim().split(" ");
-        var cmd = (tokens.length > 0) ? tokens[0] : "help";
-        var parameters = Arrays.copyOfRange(tokens, 1, tokens.length);
-        return switch (cmd) {
             case "list" -> listGames();
             case "create" -> createGame(parameters);
             case "observe" -> observeGame();
@@ -49,7 +40,14 @@ public class ChessClient {
         };
     }
 
-    private String observeGame() {
+    private String observeGame(String ... params) throws DataAccessException {
+        assertSignedIn();
+        if (params.length == 1) {
+            int gameID = Integer.parseInt(params[0]);
+            server.observeGame(authToken, gameID);
+            return "You are observing game number " + gameID;
+        }
+        throw new DataAccessException("Expected: join <game id> <WHITE|BLACK>", 400);
     }
 
     public String registerUser(String... parameters) throws DataAccessException {
@@ -109,6 +107,7 @@ public class ChessClient {
     }
 
     public String help() {
+        if (state == State.SIGNEDOUT) {
         return """
                 Commands:
                 - register <username> <password> <email>
@@ -119,11 +118,12 @@ public class ChessClient {
                 - signout
                 - quit
                 """;
+
     }
 
     private void assertSignedIn() throws DataAccessException {
-        if (authToken == null) {
-            throw new DataAccessException("You must sign in first.", 400);
+        if (state == State.SIGNEDOUT) {
+            throw new DataAccessException("You must sign in", 400);
         }
     }
 
