@@ -227,5 +227,47 @@ public class ChessClient {
             throw new DataAccessException("You must sign in first.", 400);
         }
     }
+
+    // drawing the chess board
+    private static final String[] WHITE_PIECES = {"\u2656", "\u2658", "\u2657", "\u2655", "\u2654", "\u2657", "\u2658", "\u2656"};
+    private static final String[] BLACK_PIECES = {"\u265C", "\u265E", "\u265D", "\u265B", "\u265A", "\u265D", "\u265E", "\u265C"};
+    private static final String WHITE_PAWN = "\u2659";
+    private static final String BLACK_PAWN = "\u265F";
+    private static final String LIGHT_SQUARE = "\u25A1";
+    private static final String DARK_SQUARE = "\u25A0";
+
+    public void drawBoard(boolean isWhitePerspective) {
+        String[][] board = new String[8][8];
+
+        // Set up pieces and pawns
+        for (int i = 0; i < 8; i++) {
+            board[0][i] = BLACK_PIECES[i];
+            board[1][i] = BLACK_PAWN;
+            board[6][i] = WHITE_PAWN;
+            board[7][i] = WHITE_PIECES[i];
+        }
+
+        for (int row = 2; row < 6; row++) {
+            for (int col = 0; col < 8; col++) {
+                board[row][col] = ((row + col) % 2 == 0) ? LIGHT_SQUARE : DARK_SQUARE;
+            }
+        }
+
+        System.out.println("  a b c d e f g h");
+
+        // Print board
+        for (int i = 0; i < 8; i++) {
+            int row = isWhitePerspective ? (7 - i) : i;
+            System.out.print((row + 1) + " ");
+            for (int j = 0; j < 8; j++) {
+                int col = isWhitePerspective ? j : (7 - j);
+                System.out.print(board[row][col] + " ");
+            }
+            System.out.println(" " + (row + 1));
+        }
+
+        System.out.println("  a b c d e f g h");
+    }
+
 }
 
