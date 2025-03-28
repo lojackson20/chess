@@ -55,9 +55,10 @@ public class ServerFacade {
         return this.makeRequestWithAuth("POST", path, authToken, request, GameData.class);
     }
 
-    public void joinGame(String authToken, JoinGameRequest request) throws DataAccessException {
+    public GameData joinGame(String authToken, JoinGameRequest request) throws DataAccessException {
         var path = "/game";
-        this.makeRequestWithAuth("PUT", path, authToken, request, null);
+        GameData gameData = this.makeRequestWithAuth("PUT", path, authToken, request, null);
+        return gameData;
     }
 
     public GameData observeGame(String authToken, Integer gameID) throws DataAccessException {

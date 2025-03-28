@@ -1,6 +1,11 @@
 package ui;
 
 import java.util.Arrays;
+
+import chess.ChessBoard;
+import chess.ChessGame;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import com.google.gson.Gson;
 import server.ServerFacade;
 import dataaccess.DataAccessException;
@@ -12,6 +17,7 @@ import service.RegisterRequest;
 import service.RegisterResult;
 import service.CreateGameRequest;
 import service.JoinGameRequest;
+import static ui.EscapeSequences.*;
 
 public class ChessClient {
     private String playerName = null;
@@ -45,7 +51,7 @@ public class ChessClient {
         if (params.length == 1) {
             int gameID = Integer.parseInt(params[0]);
             GameData gameData = server.observeGame(authToken, gameID);
-            drawBoard(true); // dont forget to update this later to work with game data
+            drawBoard(true, gameData); // dont forget to update this later to work with game data
             return "You are observing game number " + gameID;
         }
         throw new DataAccessException("Expected: join <game id> <WHITE|BLACK>", 400);
@@ -104,8 +110,8 @@ public class ChessClient {
         if (params.length == 2) {
             int gameID = Integer.parseInt(params[0]);
             String color = params[1].toUpperCase();
-            server.joinGame(authToken, new JoinGameRequest(authToken, color, gameID));
-            drawBoard(true);
+            GameData gameData = server.joinGame(authToken, new JoinGameRequest(authToken, color, gameID));
+            drawBoard(true, gameData);
             return "You joined game " + gameID + " as " + color;
         }
         throw new DataAccessException("Expected: join <game id> <WHITE|BLACK>", 400);
@@ -147,43 +153,72 @@ public class ChessClient {
         }
     }
 
-    private static final String[] WHITE_PIECES = {"\u2656", "\u2658", "\u2657", "\u2655", "\u2654", "\u2657", "\u2658", "\u2656"};
-    private static final String[] BLACK_PIECES = {"\u265C", "\u265E", "\u265D", "\u265B", "\u265A", "\u265D", "\u265E", "\u265C"};
-    private static final String WHITE_PAWN = "\u2659";
-    private static final String BLACK_PAWN = "\u265F";
-    private static final String LIGHT_SQUARE = "\u25A1";
-    private static final String DARK_SQUARE = "\u25A0";
 
-    public void drawBoard(boolean isWhitePerspective) {
-        String[][] board = new String[8][8];
+    public void drawBoard(boolean isWhitePerspective, GameData gameData) {
+        ChessBoard board = gameData.game().getBoard();
 
-        for (int i = 0; i < 8; i++) {
-            board[0][i] = BLACK_PIECES[i];
-            board[1][i] = BLACK_PAWN;
-            board[6][i] = WHITE_PAWN;
-            board[7][i] = WHITE_PIECES[i];
-        }
-
-        for (int row = 2; row < 6; row++) {
-            for (int col = 0; col < 8; col++) {
-                board[row][col] = ((row + col) % 2 == 0) ? LIGHT_SQUARE : DARK_SQUARE;
+        for (int i = 8; i >= 1; i--) {
+            for (int j = 1; j <= 8; j++) {
+                ChessPiece piece = board.getPiece(new ChessPosition(i, j));
+                printSquare(piece, new ChessPosition(i, j));
             }
+            System.out.print(RESET_BG_COLOR);
+            System.out.print("\n");
         }
+    }
 
-        System.out.println("  a b c d e f g h");
 
-        // Print board
-        for (int i = 0; i < 8; i++) {
-            int row = isWhitePerspective ? (7 - i) : i;
-            System.out.print((row + 1) + " ");
-            for (int j = 0; j < 8; j++) {
-                int col = isWhitePerspective ? j : (7 - j);
-                System.out.print(board[row][col] + " ");
-            }
-            System.out.println(" " + (row + 1));
+    public void printSquare(ChessPiece piece, ChessPosition position) {
+        if ((position.getRow() + position.getColumn()) % 2 == 0) {
+            System.out.print(SET_BG_COLOR_DARK_GREEN);
+            System.out.print(whatPiece(piece));
+        } else {
+            System.out.print(SET_BG_COLOR_WHITE);
+            System.out.print(whatPiece(piece));
         }
+    }
 
-        System.out.println("  a b c d e f g h");
+    public String whatPiece(ChessPiece piece) {
+        if (piece == null) {
+            return EMPTY;
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() == ChessGame.TeamColor.BLACK) {
+            return BLACK_KING;
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+            return WHITE_KING;
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.QUEEN && piece.getTeamColor() == ChessGame.TeamColor.BLACK) {
+            return BLACK_QUEEN;
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.QUEEN && piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+            return WHITE_QUEEN;
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.ROOK && piece.getTeamColor() == ChessGame.TeamColor.BLACK) {
+            return BLACK_ROOK;
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.ROOK && piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+            return WHITE_ROOK;
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.KNIGHT && piece.getTeamColor() == ChessGame.TeamColor.BLACK) {
+            return BLACK_KNIGHT;
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.KNIGHT && piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+            return WHITE_KNIGHT;
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.BISHOP && piece.getTeamColor() == ChessGame.TeamColor.BLACK) {
+            return BLACK_BISHOP;
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.BISHOP && piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+            return WHITE_BISHOP;
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && piece.getTeamColor() == ChessGame.TeamColor.BLACK) {
+            return BLACK_PAWN;
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+            return WHITE_PAWN;
+        }
+        return "hello";
     }
 
 }
