@@ -48,47 +48,74 @@ public class ChessClient {
     private String observeGame(String ... params) throws DataAccessException {
         assertSignedIn();
         if (params.length == 1) {
-            int gameID = Integer.parseInt(params[0]);
-            GameData gameData = server.observeGame(authToken, gameID);
-            drawBoard(true, gameData);
-            return "You are observing game number " + gameID;
+            int gameID;
+            try {
+                gameID = Integer.parseInt(params[0]);
+            } catch (NumberFormatException e) {
+                return "Invalid game ID. Please enter a number.";
+            }
+
+            // Check if the game exists before attempting to observe
+            ListGamesResult games = server.listGames(authToken);
+            boolean gameExists = games.games().stream().anyMatch(game -> game.gameID() == gameID);
+
+            if (!gameExists) {
+                return "That game doesn't exist!";
+            }
+
+            try {
+                GameData gameData = server.observeGame(authToken, gameID);
+                drawBoard(true, gameData);
+                return "You are now observing game " + gameID;
+            } catch (Exception e) {
+                return "Failed to observe game. Please try again.";
+            }
         }
-        throw new DataAccessException("Expected: join <game id> <WHITE|BLACK>", 400);
+        return "Expected: observe <game id>";
     }
 
     public String registerUser(String... parameters) throws DataAccessException {
-        if (parameters.length == 3) {
-            RegisterResult result = server.registerUser(new RegisterRequest(parameters[0], parameters[1], parameters[2]));
-            authToken = result.authToken();
-            playerName = parameters[0];
-            state = State.SIGNEDIN;
-            return "Successfully registered and signed in as " + playerName;
+        try {
+            if (parameters.length == 3) {
+                RegisterResult result = server.registerUser(new RegisterRequest(parameters[0], parameters[1], parameters[2]));
+                authToken = result.authToken();
+                playerName = parameters[0];
+                state = State.SIGNEDIN;
+                return "Successfully registered and signed in as " + playerName;
+            }
+        } catch (DataAccessException e) {
+            return "user is already taken";
         }
-        throw new DataAccessException("Expected: register <username> <password> <email>", 400);
+        return "Expected: register <username> <password> <email>";
+//        throw new DataAccessException("Expected: register <username> <password> <email>", 400);
     }
 
     public String signIn(String... params) throws DataAccessException {
-        if (params.length == 2) {
-            LoginResult result = server.loginUser(new LoginRequest(params[0], params[1]));
-            authToken = result.authToken();
-            playerName = params[0];
-            state = State.SIGNEDIN;
-            return "Signed in successfully as " + playerName;
+        try {
+            if (params.length == 2) {
+                LoginResult result = server.loginUser(new LoginRequest(params[0], params[1]));
+                authToken = result.authToken();
+                playerName = params[0];
+                state = State.SIGNEDIN;
+                return "Signed in successfully as " + playerName;
+            }
+        } catch (DataAccessException e) {
+            return "User doesn't exist or wrong password, try registering";
         }
-        throw new DataAccessException("Expected: signin <username> <password>", 400);
+        return "Expected: signin <username> <password>";
+//        throw new DataAccessException("Expected: signin <username> <password>", 400);
     }
 
     public String listGames() throws DataAccessException {
         assertSignedIn();
         String listedGame = "";
         ListGamesResult games = server.listGames(authToken);
-        // create index
-        for (int i = 0; i < games.games().size(); ++i) {
+        for (int i = 1; i < games.games().size(); ++i) {
             String gameName = games.games().get(i).gameName();
-            String gameID = String.valueOf(games.games().get(i).gameID());
+//            String gameID = String.valueOf(games.games().get(i).gameID());
             String black = games.games().get(i).blackUsername();
             String white = games.games().get(i).whiteUsername();
-            listedGame += "Game name:" + gameName + " Game ID:" + gameID + " Black user:" + black + " White user:" + white + "\n";
+            listedGame += "Game name:" + gameName + " Game ID:" + i + " Black user:" + black + " White user:" + white + "\n";
 
         }
         return listedGame;
@@ -122,8 +149,14 @@ public class ChessClient {
                 drawBoard(!color.equals("BLACK"), gameData);
                 return "You joined game " + gameID + " as " + color;
             } catch (DataAccessException e) {
-                if (e.getMessage().toLowerCase().contains("game full")) {
-                    return "Game is full. Please try another game.";
+                if (!color.equals("BLACK") && !color.equals("WHITE")) {
+                    return "That is not a valid color, try BLACK or WHITE";
+                }
+                ListGamesResult games = server.listGames(authToken);
+                boolean gameExists = games.games().stream().anyMatch(game -> game.gameID() == gameID);
+
+                if (!gameExists) {
+                    return "That game doesn't exist!";
                 }
                 return "Failed to join game: Game is full";
             }
@@ -173,6 +206,7 @@ public class ChessClient {
 
         if (isWhitePerspective) {
             for (int i = 8; i >= 1; i--) {
+                System.out.print(i);
                 for (int j = 1; j <= 8; j++) {
                     ChessPiece piece = board.getPiece(new ChessPosition(i, j));
                     printSquare(piece, new ChessPosition(i, j));
@@ -180,8 +214,19 @@ public class ChessClient {
                 System.out.print(RESET_BG_COLOR);
                 System.out.print("\n");
             }
+            System.out.print("  A ");
+            System.out.print("  B ");
+            System.out.print(" C ");
+            System.out.print("  D ");
+            System.out.print("  E ");
+            System.out.print(" F ");
+            System.out.print("  G ");
+            System.out.print("  H ");
+            System.out.print("\n");
+
         } else {
             for (int i = 1; i <= 8; i++) {
+                System.out.print(i);
                 for (int j = 8; j >= 1; j--) {
                     ChessPiece piece = board.getPiece(new ChessPosition(i, j));
                     printSquare(piece, new ChessPosition(i, j));
@@ -189,6 +234,15 @@ public class ChessClient {
                 System.out.print(RESET_BG_COLOR);
                 System.out.print("\n");
             }
+            System.out.print("  H ");
+            System.out.print("  G ");
+            System.out.print("  F ");
+            System.out.print(" E ");
+            System.out.print("  D ");
+            System.out.print(" C ");
+            System.out.print("  B ");
+            System.out.print("  A ");
+            System.out.print("\n");
         }
     }
 
@@ -245,13 +299,9 @@ public class ChessClient {
         }
         return "hello";
     }
-
 }
 
-// better error message for signin that doesnt exist
-// error for reregistering
-// game id index
-// columns and row names on board
+// better error message for signin that doesnt exist----***
+// error for reregistering ----***
 // better error message for when game doesnt exist
-// joining as an invalid color
-// tests
+// joining as an invalid color----***
