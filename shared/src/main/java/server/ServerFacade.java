@@ -60,9 +60,10 @@ public class ServerFacade {
         this.makeRequestWithAuth("PUT", path, authToken, request, null);
     }
 
-    public void observeGame(String authToken, Integer gameID) throws DataAccessException {
+    public GameData observeGame(String authToken, Integer gameID) throws DataAccessException {
         var path = "/game";
-        this.makeRequestWithAuth("GET", path, authToken, gameID, null);
+        ListGamesResult listGameResult = this.makeRequestWithAuth("GET", path, authToken, null, ListGamesResult.class);
+        return listGameResult.games().get(gameID);
     }
 
     public void clearDatabase() throws DataAccessException {

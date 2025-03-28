@@ -32,7 +32,7 @@ public class ChessClient {
             case "signin" -> signIn(parameters);
             case "list" -> listGames();
             case "create" -> createGame(parameters);
-            case "observe" -> observeGame();
+            case "observe" -> observeGame(parameters);
             case "join" -> joinGame(parameters);
             case "signout" -> signOut();
             case "quit" -> "Goodbye!";
@@ -44,8 +44,8 @@ public class ChessClient {
         assertSignedIn();
         if (params.length == 1) {
             int gameID = Integer.parseInt(params[0]);
-            server.observeGame(authToken, gameID);
-            drawBoard(true);
+            GameData gameData = server.observeGame(authToken, gameID);
+            drawBoard(true); // dont forget to update this later to work with game data
             return "You are observing game number " + gameID;
         }
         throw new DataAccessException("Expected: join <game id> <WHITE|BLACK>", 400);
