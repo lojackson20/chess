@@ -45,6 +45,7 @@ public class ChessClient {
         if (params.length == 1) {
             int gameID = Integer.parseInt(params[0]);
             server.observeGame(authToken, gameID);
+            drawBoard(true);
             return "You are observing game number " + gameID;
         }
         throw new DataAccessException("Expected: join <game id> <WHITE|BLACK>", 400);
@@ -81,7 +82,7 @@ public class ChessClient {
             String gameID = String.valueOf(games.games().get(i).gameID());
             String black = games.games().get(i).blackUsername();
             String white = games.games().get(i).whiteUsername();
-            listedGame += "Game name: " + gameName + " Game ID: " + gameID + " Black user: " + black + " White user: " + white + "\n";
+            listedGame += "Game name:" + gameName + " Game ID:" + gameID + " Black user:" + black + " White user:" + white + "\n";
 
         }
         return listedGame;
@@ -103,7 +104,8 @@ public class ChessClient {
         if (params.length == 2) {
             int gameID = Integer.parseInt(params[0]);
             String color = params[1].toUpperCase();
-            server.joinGame(authToken, new JoinGameRequest(authToken, color, gameID));  // Pass auth token and wrap request
+            server.joinGame(authToken, new JoinGameRequest(authToken, color, gameID));
+            drawBoard(true);
             return "You joined game " + gameID + " as " + color;
         }
         throw new DataAccessException("Expected: join <game id> <WHITE|BLACK>", 400);
@@ -145,7 +147,6 @@ public class ChessClient {
         }
     }
 
-    // drawing the chess board
     private static final String[] WHITE_PIECES = {"\u2656", "\u2658", "\u2657", "\u2655", "\u2654", "\u2657", "\u2658", "\u2656"};
     private static final String[] BLACK_PIECES = {"\u265C", "\u265E", "\u265D", "\u265B", "\u265A", "\u265D", "\u265E", "\u265C"};
     private static final String WHITE_PAWN = "\u2659";
@@ -156,7 +157,6 @@ public class ChessClient {
     public void drawBoard(boolean isWhitePerspective) {
         String[][] board = new String[8][8];
 
-        // Set up pieces and pawns
         for (int i = 0; i < 8; i++) {
             board[0][i] = BLACK_PIECES[i];
             board[1][i] = BLACK_PAWN;
