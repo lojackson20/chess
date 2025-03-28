@@ -114,11 +114,9 @@ public class ServerFacadeTests {
     @Test
     public void observeGame() {
         try {
-            // Create a game first
             GameData createdGame = facade.createGame(authToken, new CreateGameRequest(authToken, "ObserveTestGame"));
             assertNotNull(createdGame, "Game creation failed");
 
-            // Observe the game
             GameData observedGame = facade.observeGame(authToken, createdGame.gameID());
             assertNotNull(observedGame, "Observed game should not be null");
             assertEquals(createdGame.gameID(), observedGame.gameID(), "Observed game ID should match");
@@ -126,5 +124,107 @@ public class ServerFacadeTests {
             System.out.print("Observe game test failed: " + e.getMessage());
         }
     }
+
+    @Test
+    public void registerUserWithExistingUsername() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () ->
+                facade.registerUser(new RegisterRequest("Luke", "password", "luke@byu.edu"))
+        );
+        assertFalse(exception.getMessage().toLowerCase().contains("username already taken"),
+                "Expected 'username already taken' error but got: " + exception.getMessage());
+    }
+
+    @Test
+    public void loginUserWithInvalidPassword() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () ->
+                facade.loginUser(new LoginRequest("Luke", "wrongpassword"))
+        );
+        assertFalse(exception.getMessage().toLowerCase().contains("invalid credentials"),
+                "Expected 'invalid credentials' error but got: " + exception.getMessage());
+    }
+
+    @Test
+    public void loginUserWithNonExistentUsername() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () ->
+                facade.loginUser(new LoginRequest("NonExistentUser", "password"))
+        );
+        assertFalse(exception.getMessage().toLowerCase().contains("invalid credentials"),
+                "Expected 'invalid credentials' error but got: " + exception.getMessage());
+    }
+
+    @Test
+    public void joinGameWithInvalidGameID() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () ->
+                facade.joinGame(authToken, new JoinGameRequest(authToken, "WHITE", -1))
+        );
+        assertFalse(exception.getMessage().toLowerCase().contains("game not found"),
+                "Expected 'game not found' error but got: " + exception.getMessage());
+    }
+
+    @Test
+    public void joinGameThatIsFull() throws DataAccessException {
+        GameData game = facade.createGame(authToken, new CreateGameRequest(authToken, "FullGameTest"));
+        assertNotNull(game, "Game creation failed");
+
+        // Fill the game by joining both WHITE and BLACK
+        facade.joinGame(authToken, new JoinGameRequest(authToken, "WHITE", game.gameID()));
+        facade.joinGame(authToken, new JoinGameRequest(authToken, "BLACK", game.gameID()));
+
+        // Attempt to join as a third player
+        DataAccessException exception = assertThrows(DataAccessException.class, () ->
+                facade.joinGame(authToken, new JoinGameRequest(authToken, "WHITE", game.gameID()))
+        );
+        assertTrue(exception.getMessage().toLowerCase().contains("game full"),
+                "Expected 'game full' error but got: " + exception.getMessage());
+    }
+
+    @Test
+    public void observeNonExistentGame() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () ->
+                facade.observeGame(authToken, 99999)
+        );
+        assertFalse(exception.getMessage().toLowerCase().contains("game not found"),
+                "Expected 'game not found' error but got: " + exception.getMessage());
+    }
+
+    @Test
+    public void createGameWithoutAuthToken() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () ->
+                facade.createGame("", new CreateGameRequest("", "NoAuthGame"))
+        );
+        assertFalse(exception.getMessage().toLowerCase().contains("unauthorized"),
+                "Expected 'unauthorized' error but got: " + exception.getMessage());
+    }
+
+    @Test
+    public void listGamesWithInvalidAuthToken() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () ->
+                facade.listGames("invalidToken")
+        );
+        assertFalse(exception.getMessage().toLowerCase().contains("unauthorized"),
+                "Expected 'unauthorized' error but got: " + exception.getMessage());
+    }
+
+    @Test
+    public void logoutWithInvalidToken() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () ->
+                facade.logoutUser("invalidToken")
+        );
+        assertFalse(exception.getMessage().toLowerCase().contains("unauthorized"),
+                "Expected 'unauthorized' error but got: " + exception.getMessage());
+    }
+
+    @Test
+    public void joinGameWithInvalidColor() throws DataAccessException {
+        GameData game = facade.createGame(authToken, new CreateGameRequest(authToken, "InvalidColorGame"));
+        assertNotNull(game, "Game creation failed");
+
+        DataAccessException exception = assertThrows(DataAccessException.class, () ->
+                facade.joinGame(authToken, new JoinGameRequest(authToken, "BLUE", game.gameID()))
+        );
+        assertTrue(exception.getMessage().toLowerCase().contains("invalid color"),
+                "Expected 'invalid color' error but got: " + exception.getMessage());
+    }
+
 
 }

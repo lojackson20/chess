@@ -82,6 +82,7 @@ public class ChessClient {
         assertSignedIn();
         String listedGame = "";
         ListGamesResult games = server.listGames(authToken);
+        // create index
         for (int i = 0; i < games.games().size(); ++i) {
             String gameName = games.games().get(i).gameName();
             String gameID = String.valueOf(games.games().get(i).gameID());
@@ -247,3 +248,10 @@ public class ChessClient {
 
 }
 
+// better error message for signin that doesnt exist
+// error for reregistering
+// game id index
+// columns and row names on board
+// better error message for when game doesnt exist
+// joining as an invalid color
+// tests
