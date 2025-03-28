@@ -51,7 +51,7 @@ public class ChessClient {
         if (params.length == 1) {
             int gameID = Integer.parseInt(params[0]);
             GameData gameData = server.observeGame(authToken, gameID);
-            drawBoard(true, gameData); // dont forget to update this later to work with game data
+            drawBoard(true, gameData);
             return "You are observing game number " + gameID;
         }
         throw new DataAccessException("Expected: join <game id> <WHITE|BLACK>", 400);
@@ -108,14 +108,27 @@ public class ChessClient {
     public String joinGame(String... params) throws DataAccessException {
         assertSignedIn();
         if (params.length == 2) {
-            int gameID = Integer.parseInt(params[0]);
-            String color = params[1].toUpperCase();
-            GameData gameData = server.joinGame(authToken, new JoinGameRequest(authToken, color, gameID));
-            drawBoard(!color.equals("BLACK"), gameData);
+            int gameID;
+            try {
+                gameID = Integer.parseInt(params[0]);
+            } catch (NumberFormatException e) {
+                return "Invalid game ID. Please enter a number.";
+            }
 
-            return "You joined game " + gameID + " as " + color;
+            String color = params[1].toUpperCase();
+
+            try {
+                GameData gameData = server.joinGame(authToken, new JoinGameRequest(authToken, color, gameID));
+                drawBoard(!color.equals("BLACK"), gameData);
+                return "You joined game " + gameID + " as " + color;
+            } catch (DataAccessException e) {
+                if (e.getMessage().toLowerCase().contains("game full")) {
+                    return "Game is full. Please try another game.";
+                }
+                return "Failed to join game: Game is full";
+            }
         }
-        throw new DataAccessException("Expected: join <game id> <WHITE|BLACK>", 400);
+        return "Expected: join <game id> <WHITE|BLACK>";
     }
 
     public String signOut() throws DataAccessException {
