@@ -5,9 +5,9 @@ import dataaccess.DataAccessException;
 import dataaccess.DataAccess;
 import model.AuthData;
 import model.GameData;
-import requestAndResult.CreateGameResult;
-import requestAndResult.JoinGameResult;
-import requestAndResult.ListGamesResult;
+import requestandresult.CreateGameResult;
+import requestandresult.JoinGameResult;
+import requestandresult.ListGamesResult;
 
 public class GameService {
     private final DataAccess dataAccess;

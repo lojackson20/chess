@@ -10,13 +10,13 @@ import dataaccess.DataAccessException;
 //import exception.ErrorResponse;
 //import exception.ResponseException;
 import model.GameData;
-import requestAndResult.JoinGameRequest;
-import requestAndResult.CreateGameRequest;
-import requestAndResult.ListGamesResult;
-import requestAndResult.RegisterRequest;
-import requestAndResult.RegisterResult;
-import requestAndResult.LoginRequest;
-import requestAndResult.LoginResult;
+import requestandresult.JoinGameRequest;
+import requestandresult.CreateGameRequest;
+import requestandresult.ListGamesResult;
+import requestandresult.RegisterRequest;
+import requestandresult.RegisterResult;
+import requestandresult.LoginRequest;
+import requestandresult.LoginResult;
 
 import java.io.*;
 import java.net.*;
@@ -65,11 +65,6 @@ public class ServerFacade {
         var path = "/game";
         ListGamesResult listGameResult = this.makeRequestWithAuth("GET", path, authToken, null, ListGamesResult.class);
         return listGameResult.games().get(gameID - 1);
-    }
-
-    public void clearDatabase() throws DataAccessException {
-        var path = "/db";
-        this.makeRequest("DELETE", path, null, null);
     }
 
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws DataAccessException {

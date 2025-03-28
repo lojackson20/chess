@@ -6,7 +6,7 @@ import dataaccess.DataAccessException;
 import dataaccess.DataAccess;
 import dataaccess.MySQLDataAccess;
 import model.AuthData;
-import requestAndResult.*;
+import requestandresult.*;
 import service.*;
 import spark.*;
 

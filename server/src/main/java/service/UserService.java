@@ -9,7 +9,7 @@ import dataaccess.DataAccessException;
 import model.UserData;
 import model.AuthData;
 import org.mindrot.jbcrypt.BCrypt;
-import requestAndResult.*;
+import requestandresult.*;
 
 
 public class UserService {

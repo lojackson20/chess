@@ -9,13 +9,13 @@ import chess.ChessPosition;
 import server.ServerFacade;
 import dataaccess.DataAccessException;
 import model.GameData;
-import requestAndResult.ListGamesResult;
-import requestAndResult.LoginRequest;
-import requestAndResult.LoginResult;
-import requestAndResult.RegisterRequest;
-import requestAndResult.RegisterResult;
-import requestAndResult.CreateGameRequest;
-import requestAndResult.JoinGameRequest;
+import requestandresult.ListGamesResult;
+import requestandresult.LoginRequest;
+import requestandresult.LoginResult;
+import requestandresult.RegisterRequest;
+import requestandresult.RegisterResult;
+import requestandresult.CreateGameRequest;
+import requestandresult.JoinGameRequest;
 import static ui.EscapeSequences.*;
 
 public class ChessClient {
