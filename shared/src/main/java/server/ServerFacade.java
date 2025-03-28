@@ -9,16 +9,15 @@ import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 //import exception.ErrorResponse;
 //import exception.ResponseException;
-import model.AuthData;
 import model.GameData;
-import service.JoinGameRequest;
-import service.CreateGameRequest;
-import service.ListGamesResult;
-import service.RegisterRequest;
-import service.RegisterResult;
-import service.LoginRequest;
-import service.LoginResult;
-import service.LogoutResult;
+import requestAndResult.JoinGameRequest;
+import requestAndResult.CreateGameRequest;
+import requestAndResult.ListGamesResult;
+import requestAndResult.RegisterRequest;
+import requestAndResult.RegisterResult;
+import requestAndResult.LoginRequest;
+import requestAndResult.LoginResult;
+
 import java.io.*;
 import java.net.*;
 

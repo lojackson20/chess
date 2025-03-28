@@ -1,7 +1,6 @@
 import chess.*;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccess;
 import dataaccess.MySQLDataAccess;
 import server.Server;
 import service.GameService;

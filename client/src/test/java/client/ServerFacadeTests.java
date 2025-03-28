@@ -3,9 +3,9 @@ package client;
 import dataaccess.DataAccessException;
 import model.GameData;
 import org.junit.jupiter.api.*;
+import requestAndResult.*;
 import server.Server;
 import server.ServerFacade;
-import service.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 

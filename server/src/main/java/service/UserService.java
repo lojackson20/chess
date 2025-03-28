@@ -2,16 +2,14 @@ package service;
 
 import dataaccess.DataAccess;
 
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
 
-import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.UserData;
 import model.AuthData;
-import model.GameData;
 import org.mindrot.jbcrypt.BCrypt;
+import requestAndResult.*;
 
 
 public class UserService {

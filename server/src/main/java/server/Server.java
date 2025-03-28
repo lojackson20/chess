@@ -1,18 +1,14 @@
 package server;
 
-import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import dataaccess.DataAccessException;
 import dataaccess.DataAccess;
-import dataaccess.MemoryDataAccess;
 import dataaccess.MySQLDataAccess;
 import model.AuthData;
-import model.GameData;
+import requestAndResult.*;
 import service.*;
 import spark.*;
-
-import java.util.ArrayList;
 
 public class Server {
     private final UserService userService;

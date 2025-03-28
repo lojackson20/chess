@@ -6,17 +6,16 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
-import com.google.gson.Gson;
 import server.ServerFacade;
 import dataaccess.DataAccessException;
 import model.GameData;
-import service.ListGamesResult;
-import service.LoginRequest;
-import service.LoginResult;
-import service.RegisterRequest;
-import service.RegisterResult;
-import service.CreateGameRequest;
-import service.JoinGameRequest;
+import requestAndResult.ListGamesResult;
+import requestAndResult.LoginRequest;
+import requestAndResult.LoginResult;
+import requestAndResult.RegisterRequest;
+import requestAndResult.RegisterResult;
+import requestAndResult.CreateGameRequest;
+import requestAndResult.JoinGameRequest;
 import static ui.EscapeSequences.*;
 
 public class ChessClient {
