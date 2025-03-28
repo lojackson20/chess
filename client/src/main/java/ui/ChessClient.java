@@ -55,6 +55,7 @@ public class ChessClient {
             RegisterResult result = server.registerUser(new RegisterRequest(parameters[0], parameters[1], parameters[2]));
             authToken = result.authToken();  // Store auth token after registration
             playerName = parameters[0];
+            state = State.SIGNEDIN;
             return "Successfully registered and signed in as " + playerName;
         }
         throw new DataAccessException("Expected: register <username> <password> <email>", 400);
@@ -65,6 +66,7 @@ public class ChessClient {
             LoginResult result = server.loginUser(new LoginRequest(params[0], params[1]));
             authToken = result.authToken();  // Store auth token after login
             playerName = params[0];
+            state = State.SIGNEDIN;
             return "Signed in successfully as " + playerName;
         }
         throw new DataAccessException("Expected: signin <username> <password>", 400);
@@ -72,8 +74,17 @@ public class ChessClient {
 
     public String listGames() throws DataAccessException {
         assertSignedIn();
-        ListGamesResult games = server.listGames(authToken);  // Pass auth token
-        return new Gson().toJson(games);
+        String listedGame = "";
+        ListGamesResult games = server.listGames(authToken);
+        for (int i = 0; i < games.games().size(); ++i) {
+            String gameName = games.games().get(i).gameName();
+            String gameID = String.valueOf(games.games().get(i).gameID());
+            String black = games.games().get(i).blackUsername();
+            String white = games.games().get(i).whiteUsername();
+            listedGame += "Game name: " + gameName + " Game ID: " + gameID + " Black user: " + black + " White user: " + white + "\n";
+
+        }
+        return listedGame;
     }
 
     public String createGame(String... params) throws DataAccessException {
@@ -108,15 +119,22 @@ public class ChessClient {
 
     public String help() {
         if (state == State.SIGNEDOUT) {
+            return """
+                    Commands:
+                    - register <username> <password> <email>
+                    - signin <username> <password>
+                    - quit
+                    - help
+                    """;
+        }
         return """
-                Commands:
-                - register <username> <password> <email>
-                - signin <username> <password>
                 - list (lists available games)
                 - create <game name>
                 - join <game id> <WHITE|BLACK>
+                - observe
                 - signout
                 - quit
+                - help
                 """;
 
     }
