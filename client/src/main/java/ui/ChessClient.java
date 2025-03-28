@@ -71,7 +71,7 @@ public class ChessClient {
     public String signIn(String... params) throws DataAccessException {
         if (params.length == 2) {
             LoginResult result = server.loginUser(new LoginRequest(params[0], params[1]));
-            authToken = result.authToken();  // Store auth token after login
+            authToken = result.authToken();
             playerName = params[0];
             state = State.SIGNEDIN;
             return "Signed in successfully as " + playerName;
@@ -111,7 +111,8 @@ public class ChessClient {
             int gameID = Integer.parseInt(params[0]);
             String color = params[1].toUpperCase();
             GameData gameData = server.joinGame(authToken, new JoinGameRequest(authToken, color, gameID));
-            drawBoard(true, gameData);
+            drawBoard(!color.equals("BLACK"), gameData);
+
             return "You joined game " + gameID + " as " + color;
         }
         throw new DataAccessException("Expected: join <game id> <WHITE|BLACK>", 400);
@@ -157,13 +158,24 @@ public class ChessClient {
     public void drawBoard(boolean isWhitePerspective, GameData gameData) {
         ChessBoard board = gameData.game().getBoard();
 
-        for (int i = 8; i >= 1; i--) {
-            for (int j = 1; j <= 8; j++) {
-                ChessPiece piece = board.getPiece(new ChessPosition(i, j));
-                printSquare(piece, new ChessPosition(i, j));
+        if (isWhitePerspective) {
+            for (int i = 8; i >= 1; i--) {
+                for (int j = 1; j <= 8; j++) {
+                    ChessPiece piece = board.getPiece(new ChessPosition(i, j));
+                    printSquare(piece, new ChessPosition(i, j));
+                }
+                System.out.print(RESET_BG_COLOR);
+                System.out.print("\n");
             }
-            System.out.print(RESET_BG_COLOR);
-            System.out.print("\n");
+        } else {
+            for (int i = 1; i <= 8; i++) {
+                for (int j = 8; j >= 1; j--) {
+                    ChessPiece piece = board.getPiece(new ChessPosition(i, j));
+                    printSquare(piece, new ChessPosition(i, j));
+                }
+                System.out.print(RESET_BG_COLOR);
+                System.out.print("\n");
+            }
         }
     }
 
