@@ -71,7 +71,8 @@ public class ServerFacade {
         return makeRequestWithAuth(method, path, null, request, responseClass);
     }
 
-    private <T> T makeRequestWithAuth(String method, String path, String authToken, Object request, Class<T> responseClass) throws DataAccessException {
+    private <T> T makeRequestWithAuth(String method, String path, String authToken, Object request, Class<T> responseClass)
+            throws DataAccessException {
         try {
             URL url = (new URI(serverUrl + path)).toURL();
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
