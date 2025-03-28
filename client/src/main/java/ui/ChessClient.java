@@ -54,7 +54,7 @@ public class ChessClient {
     public String registerUser(String... parameters) throws DataAccessException {
         if (parameters.length == 3) {
             RegisterResult result = server.registerUser(new RegisterRequest(parameters[0], parameters[1], parameters[2]));
-            authToken = result.authToken();  // Store auth token after registration
+            authToken = result.authToken();
             playerName = parameters[0];
             state = State.SIGNEDIN;
             return "Successfully registered and signed in as " + playerName;
