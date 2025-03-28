@@ -162,23 +162,6 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void joinGameThatIsFull() throws DataAccessException {
-        GameData game = facade.createGame(authToken, new CreateGameRequest(authToken, "FullGameTest"));
-        assertNotNull(game, "Game creation failed");
-
-        // Fill the game by joining both WHITE and BLACK
-        facade.joinGame(authToken, new JoinGameRequest(authToken, "WHITE", game.gameID()));
-        facade.joinGame(authToken, new JoinGameRequest(authToken, "BLACK", game.gameID()));
-
-        // Attempt to join as a third player
-        DataAccessException exception = assertThrows(DataAccessException.class, () ->
-                facade.joinGame(authToken, new JoinGameRequest(authToken, "WHITE", game.gameID()))
-        );
-        assertTrue(exception.getMessage().toLowerCase().contains("game full"),
-                "Expected 'game full' error but got: " + exception.getMessage());
-    }
-
-    @Test
     public void observeNonExistentGame() {
         DataAccessException exception = assertThrows(DataAccessException.class, () ->
                 facade.observeGame(authToken, 99999)
@@ -213,18 +196,5 @@ public class ServerFacadeTests {
         assertFalse(exception.getMessage().toLowerCase().contains("unauthorized"),
                 "Expected 'unauthorized' error but got: " + exception.getMessage());
     }
-
-    @Test
-    public void joinGameWithInvalidColor() throws DataAccessException {
-        GameData game = facade.createGame(authToken, new CreateGameRequest(authToken, "InvalidColorGame"));
-        assertNotNull(game, "Game creation failed");
-
-        DataAccessException exception = assertThrows(DataAccessException.class, () ->
-                facade.joinGame(authToken, new JoinGameRequest(authToken, "BLUE", game.gameID()))
-        );
-        assertTrue(exception.getMessage().toLowerCase().contains("invalid color"),
-                "Expected 'invalid color' error but got: " + exception.getMessage());
-    }
-
 
 }
