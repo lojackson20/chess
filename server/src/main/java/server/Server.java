@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import dataaccess.DataAccessException;
 import dataaccess.DataAccess;
 import dataaccess.MySQLDataAccess;
+import server.websocket.WebSocketHandler;
 import model.AuthData;
 import requestandresult.*;
 import service.*;
@@ -13,8 +14,10 @@ import spark.*;
 public class Server {
     private final UserService userService;
     private final GameService gameService;
+    private final WebSocketHandler webSocketHandler;
 
-    public Server() {
+    public Server(WebSocketHandler webSocketHandler) {
+        this.webSocketHandler = webSocketHandler;
         DataAccess dataAccess = null;
         try {
             dataAccess = new MySQLDataAccess();
@@ -25,9 +28,10 @@ public class Server {
         this.gameService = new GameService(dataAccess);
     }
 
-    public Server(UserService userService, GameService gameService) {
+    public Server(UserService userService, GameService gameService, WebSocketHandler webSocketHandler) {
         this.userService = userService;
         this.gameService = gameService;
+        this.webSocketHandler = new WebSocketHandler();
     }
 
     public int run(int desiredPort) {
@@ -35,6 +39,8 @@ public class Server {
         Spark.port(desiredPort);
 
         Spark.staticFiles.location("web");
+
+        Spark.webSocket("/ws", webSocketHandler);
 
         // Register your endpoints and handle exceptions here.
         Spark.delete("/db", this::clearApp);
