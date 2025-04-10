@@ -16,8 +16,12 @@ public class Server {
     private final GameService gameService;
     private final WebSocketHandler webSocketHandler;
 
-    public Server(WebSocketHandler webSocketHandler) {
-        this.webSocketHandler = webSocketHandler;
+    public Server() {
+        try {
+            this.webSocketHandler = new WebSocketHandler();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
         DataAccess dataAccess = null;
         try {
             dataAccess = new MySQLDataAccess();
@@ -28,11 +32,11 @@ public class Server {
         this.gameService = new GameService(dataAccess);
     }
 
-    public Server(UserService userService, GameService gameService, WebSocketHandler webSocketHandler) throws DataAccessException {
-        this.userService = userService;
-        this.gameService = gameService;
-        this.webSocketHandler = new WebSocketHandler();
-    }
+//    public Server(UserService userService, GameService gameService, WebSocketHandler webSocketHandler) throws DataAccessException {
+//        this.userService = userService;
+//        this.gameService = gameService;
+//        this.webSocketHandler = new WebSocketHandler();
+//    }
 
     public int run(int desiredPort) {
 

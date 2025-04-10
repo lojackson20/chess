@@ -21,7 +21,7 @@ public class Main {
         UserService userService = new UserService(dataAccess);
         GameService gameService = new GameService(dataAccess);
 
-        Server newServer = new Server(userService, gameService);
+        Server newServer = new Server();
         newServer.run(8080);
     }
 }

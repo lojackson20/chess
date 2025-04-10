@@ -16,9 +16,11 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import websocket.commands.UserGameCommand;
 import websocket.messages.LoadGameMessage;
+import websocket.messages.Notification;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Timer;
 
 
@@ -37,48 +39,56 @@ public class WebSocketHandler {
         UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
         switch (command.getCommandType()) {
             case CONNECT -> connect(command.getGameID(), command.getAuthToken(), session);
-            case MAKE_MOVE -> makeMove(action.visitorName());
-            case LEAVE -> leave();
-            case RESIGN -> resign();
+            case MAKE_MOVE -> makeMove();
+//            case LEAVE -> leave();
+//            case RESIGN -> resign();
         }
     }
 
     private void connect(Integer gameID, String authToken, Session session) throws IOException, DataAccessException {
         GameData game = dataAccess.getGame(gameID);
+        if (game == null) {
+            // Send error to client
+            DataAccessException error = new DataAccessException(ServerMessage.ServerMessageType.ERROR, "Invalid game ID");
+            session.getRemote().sendString(new Gson().toJson(error));
+            return;
+        }
         LoadGameMessage message = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
         String sendMessage =  new Gson().toJson(message);
         session.getRemote().sendString(sendMessage);
         connections.add(authToken, session);
-        String userMessage;
         String userColor;
         AuthData authData = dataAccess.getAuth(authToken);
-        if (game.whiteUsername() == authData.username()) {
+        if (Objects.equals(game.whiteUsername(), authData.username())) {
             userColor = "White";
+        } else if (Objects.equals(game.blackUsername(), authData.username())) {
+            userColor = "Black";
+        } else {
+            userColor = "observer";
         }
-
-        var message = dataAccess.getAuth(authToken).username() + " has joined the game as " + ;
-        var notification = new Notificaton(Notification.Type.ARRIVAL, message);
-        connections.broadcast(visitorName, notification);
+        var allMessage = dataAccess.getAuth(authToken).username() + " has joined the game as " + userColor;
+        var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, allMessage);
+        connections.broadcast(authData.authToken(), notification);
     }
 
-    private void makeMove(String visitorName) throws IOException {
-        connections.remove(visitorName);
-        var message = String.format("%s left the shop", visitorName);
-        var notification = new Notification(Notification.Type.DEPARTURE, message);
-        connections.broadcast(visitorName, notification);
+    private void makeMove() throws IOException {
+//        connections.remove(visitorName);
+//        var message = String.format("%s left the shop", visitorName);
+//        var notification = new Notification(Notification.Type.DEPARTURE, message);
+//        connections.broadcast(visitorName, notification);
     }
-
-    public void leave(String petName, String sound) throws ResponseException {
-        try {
-            var message = String.format("%s says %s", petName, sound);
-            var notification = new Notification(Notification.Type.NOISE, message);
-            connections.broadcast("", notification);
-        } catch (Exception ex) {
-            throw new ResponseException(500, ex.getMessage());
-        }
-    }
-
-    public void resign() {
-
-    }
+//
+//    public void leave(String petName, String sound) throws ResponseException {
+//        try {
+//            var message = String.format("%s says %s", petName, sound);
+//            var notification = new Notification(Notification.Type.NOISE, message);
+//            connections.broadcast("", notification);
+//        } catch (Exception ex) {
+//            throw new ResponseException(500, ex.getMessage());
+//        }
+//    }
+//
+//    public void resign() {
+//
+//    }
 }
