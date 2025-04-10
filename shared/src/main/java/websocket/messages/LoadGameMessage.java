@@ -7,6 +7,6 @@ public class LoadGameMessage extends ServerMessage{
 
     public LoadGameMessage(ServerMessageType type, GameData gameData) {
         super(type);
-        GameData game = gameData;
+        this.game = gameData;
     }
 }

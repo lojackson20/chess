@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.MySQLDataAccess;
+import model.AuthData;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
@@ -48,6 +49,16 @@ public class WebSocketHandler {
         String sendMessage =  new Gson().toJson(message);
         session.getRemote().sendString(sendMessage);
         connections.add(authToken, session);
+        String userMessage;
+        String userColor;
+        AuthData authData = dataAccess.getAuth(authToken);
+        if (game.whiteUsername() == authData.username()) {
+            userColor = "White";
+        }
+
+        var message = dataAccess.getAuth(authToken).username() + " has joined the game as " + ;
+        var notification = new Notificaton(Notification.Type.ARRIVAL, message);
+        connections.broadcast(visitorName, notification);
     }
 
     private void makeMove(String visitorName) throws IOException {
