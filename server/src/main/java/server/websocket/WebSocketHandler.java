@@ -51,8 +51,8 @@ public class WebSocketHandler {
                 MakeMoveCommand moveCommand = gson.fromJson(message, MakeMoveCommand.class);
                 makeMove(moveCommand.getGameID(), moveCommand.getAuthToken(), moveCommand.getMove(), session);
             }
-//            case LEAVE -> leave();
-//            case RESIGN -> resign();
+            case LEAVE -> leaveGame(baseCommand.getGameID(), baseCommand.getAuthToken(), session);
+            case RESIGN -> resign(baseCommand.getGameID(), baseCommand.getAuthToken(), session);
         }
     }
 
@@ -136,35 +136,104 @@ public class WebSocketHandler {
         dataAccess.updateGame(game);
 
         LoadGameMessage loadMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
-        connections.broadcast(authToken, loadMessage);
+        connections.broadcastAll(loadMessage);
 
         String moveMessage = username + " moved from " + move.getStartPosition() + " to " + move.getEndPosition();
         Notification moveNotification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, moveMessage);
-        connections.broadcast(authToken, moveNotification);
+        connections.broadcast(authData.authToken(), moveNotification);
 
         if (chessGame.isInCheckmate(chessGame.getTeamTurn())) {
             Notification checkmate = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Checkmate!");
-            connections.broadcast(authToken, checkmate);
+            connections.broadcastAll(checkmate);
         } else if (chessGame.isInStalemate(chessGame.getTeamTurn())) {
             Notification stalemate = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Stalemate.");
-            connections.broadcast(authToken, stalemate);
+            connections.broadcastAll(stalemate);
         } else if (chessGame.isInCheck(chessGame.getTeamTurn())) {
             Notification check = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Check!");
-            connections.broadcast(authToken, check);
+            connections.broadcastAll(check);
         }
     }
-//
-//    public void leave(String petName, String sound) throws ResponseException {
-//        try {
-//            var message = String.format("%s says %s", petName, sound);
-//            var notification = new Notification(Notification.Type.NOISE, message);
-//            connections.broadcast("", notification);
-//        } catch (Exception ex) {
-//            throw new ResponseException(500, ex.getMessage());
-//        }
-//    }
-//
-//    public void resign() {
-//
-//    }
+
+    private void leaveGame(Integer gameID, String authToken, Session session) throws IOException, DataAccessException {
+        GameData game = dataAccess.getGame(gameID);
+        if (game == null) {
+            ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Invalid game ID");
+            session.getRemote().sendString(new Gson().toJson(error));
+            return;
+        }
+
+        AuthData authData = dataAccess.getAuth(authToken);
+        if (authData == null) {
+            ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Invalid auth token");
+            session.getRemote().sendString(new Gson().toJson(error));
+            return;
+        }
+
+        String username = authData.username();
+        String newWhite = game.whiteUsername();
+        String newBlack = game.blackUsername();
+
+        if (username.equals(newWhite)) {
+            newWhite = null;
+        } else if (username.equals(newBlack)) {
+            newBlack = null;
+        }
+
+        GameData updatedGame = new GameData(
+                game.gameID(),
+                newWhite,
+                newBlack,
+                game.gameName(),
+                game.game()
+        );
+
+        dataAccess.updateGame(updatedGame);
+
+        String message = username + " left the game.";
+        Notification leaveNotification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, message);
+        connections.broadcast(authToken, leaveNotification);
+
+        connections.remove(username);
+    }
+
+    private void resign(Integer gameID, String authToken, Session session) throws IOException, DataAccessException {
+        GameData game = dataAccess.getGame(gameID);
+        if (game == null) {
+            ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Invalid game ID");
+            session.getRemote().sendString(new Gson().toJson(error));
+            return;
+        }
+
+        AuthData authData = dataAccess.getAuth(authToken);
+        if (authData == null) {
+            ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Invalid auth token");
+            session.getRemote().sendString(new Gson().toJson(error));
+            return;
+        }
+
+        String username = authData.username();
+        boolean isWhite = username.equals(game.whiteUsername());
+        boolean isBlack = username.equals(game.blackUsername());
+
+        if (!isWhite && !isBlack) {
+            ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Only players can resign");
+            session.getRemote().sendString(new Gson().toJson(error));
+            return;
+        }
+
+        GameData updatedGame = new GameData(
+                game.gameID(),
+                null,
+                null,
+                game.gameName(),
+                game.game()
+        );
+
+        dataAccess.updateGame(updatedGame);
+
+        String resignMessage = username + " has resigned. Game over.";
+        Notification notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, resignMessage);
+        connections.broadcastAll(notification);
+    }
+
 }
