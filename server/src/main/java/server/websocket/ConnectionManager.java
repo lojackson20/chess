@@ -41,4 +41,20 @@ public class ConnectionManager {
             connections.remove(c.visitorName);
         }
     }
+
+    public void broadcastAll(ServerMessage message) throws IOException {
+        var removeList = new ArrayList<Connection>();
+        for (var c : connections.values()) {
+            if (c.session.isOpen()) {
+                c.send(message.toString());
+            } else {
+                removeList.add(c);
+            }
+        }
+
+        // Clean up any dead connections
+        for (var c : removeList) {
+            connections.remove(c.visitorName);
+        }
+    }
 }

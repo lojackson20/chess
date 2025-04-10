@@ -17,6 +17,7 @@ import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
@@ -40,10 +41,16 @@ public class WebSocketHandler {
     @OnWebSocketMessage
     // when i recieve a message what do i do? from (UserGameCommands)
     public void onMessage(Session session, String message) throws IOException, DataAccessException {
-        UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
-        switch (command.getCommandType()) {
-            case CONNECT -> connect(command.getGameID(), command.getAuthToken(), session);
-            case MAKE_MOVE -> makeMove(command.getGameID(), command.getAuthToken(), "Chessmove", session);
+//        UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
+        Gson gson = new Gson();
+        UserGameCommand baseCommand = gson.fromJson(message, UserGameCommand.class);
+
+        switch (baseCommand.getCommandType()) {
+            case CONNECT -> connect(baseCommand.getGameID(), baseCommand.getAuthToken(), session);
+            case MAKE_MOVE -> {
+                MakeMoveCommand moveCommand = gson.fromJson(message, MakeMoveCommand.class);
+                makeMove(moveCommand.getGameID(), moveCommand.getAuthToken(), moveCommand.getMove(), session);
+            }
 //            case LEAVE -> leave();
 //            case RESIGN -> resign();
         }
@@ -86,7 +93,6 @@ public class WebSocketHandler {
     private void makeMove(Integer gameID, String authToken, ChessMove move, Session session) throws IOException, DataAccessException {
         GameData game = dataAccess.getGame(gameID);
         if (game == null) {
-//            Session session = connections.getSession(authToken);
             if (session != null) {
                 ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Invalid game ID");
                 session.getRemote().sendString(new Gson().toJson(error));
@@ -96,7 +102,6 @@ public class WebSocketHandler {
 
         AuthData authData = dataAccess.getAuth(authToken);
         if (authData == null) {
-//            Session session = connections.getSession(authToken);
             if (session != null) {
                 ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Invalid authtoken");
                 session.getRemote().sendString(new Gson().toJson(error));
@@ -109,10 +114,8 @@ public class WebSocketHandler {
         boolean isWhite = Objects.equals(username, game.whiteUsername());
         boolean isBlack = Objects.equals(username, game.blackUsername());
 
-        // Check if it's the player's turn
         if ((chessGame.getTeamTurn() == ChessGame.TeamColor.WHITE && !isWhite) ||
                 (chessGame.getTeamTurn() == ChessGame.TeamColor.BLACK && !isBlack)) {
-//            Session session = connections.getSession(authToken);
             if (session != null) {
                 ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Not your turn");
                 session.getRemote().sendString(new Gson().toJson(error));
@@ -120,11 +123,9 @@ public class WebSocketHandler {
             return;
         }
 
-        // Attempt to make the move
         try {
             chessGame.makeMove(move);
         } catch (InvalidMoveException e) {
-//            Session session = connections.getSession(authToken);
             if (session != null) {
                 ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Illegal move: " + e.getMessage());
                 session.getRemote().sendString(new Gson().toJson(error));
@@ -132,19 +133,15 @@ public class WebSocketHandler {
             return;
         }
 
-        // Update the game in the database
         dataAccess.updateGame(game);
 
-        // Send updated game state to all clients in the game
         LoadGameMessage loadMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
         connections.broadcast(authToken, loadMessage);
 
-        // Notify others about the move
         String moveMessage = username + " moved from " + move.getStartPosition() + " to " + move.getEndPosition();
         Notification moveNotification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, moveMessage);
         connections.broadcast(authToken, moveNotification);
 
-        // Check for check, checkmate, or stalemate
         if (chessGame.isInCheckmate(chessGame.getTeamTurn())) {
             Notification checkmate = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Checkmate!");
             connections.broadcast(authToken, checkmate);
