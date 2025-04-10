@@ -169,31 +169,23 @@ public class WebSocketHandler {
             return;
         }
 
-        String username = authData.username();
-        String newWhite = game.whiteUsername();
-        String newBlack = game.blackUsername();
+        // Remove the user's session from the connections manager
+        connections.remove(authToken);
 
-        if (username.equals(newWhite)) {
-            newWhite = null;
-        } else if (username.equals(newBlack)) {
-            newBlack = null;
+        String username = authData.username();
+        String role;
+        if (Objects.equals(username, game.whiteUsername())) {
+            role = "White";
+        } else if (Objects.equals(username, game.blackUsername())) {
+            role = "Black";
+        } else {
+            role = "observer";
         }
 
-        GameData updatedGame = new GameData(
-                game.gameID(),
-                newWhite,
-                newBlack,
-                game.gameName(),
-                game.game()
-        );
+        String leaveMessage = username + " has left the game as " + role + ".";
+        Notification notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, leaveMessage);
+        connections.broadcast(authToken, notification);
 
-        dataAccess.updateGame(updatedGame);
-
-        String message = username + " left the game.";
-        Notification leaveNotification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        connections.broadcast(authToken, leaveNotification);
-
-        connections.remove(username);
     }
 
     private void resign(Integer gameID, String authToken, Session session) throws IOException, DataAccessException {
