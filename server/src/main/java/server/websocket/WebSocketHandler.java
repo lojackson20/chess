@@ -41,7 +41,6 @@ public class WebSocketHandler {
     @OnWebSocketMessage
     // when i recieve a message what do i do? from (UserGameCommands)
     public void onMessage(Session session, String message) throws IOException, DataAccessException {
-//        UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
         Gson gson = new Gson();
         UserGameCommand baseCommand = gson.fromJson(message, UserGameCommand.class);
 
@@ -74,7 +73,7 @@ public class WebSocketHandler {
         LoadGameMessage message = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
         String sendMessage =  new Gson().toJson(message);
         session.getRemote().sendString(sendMessage);
-        connections.add(authToken, session);
+        connections.add(authToken, session, gameID);
 
         String userColor;
 
@@ -87,7 +86,7 @@ public class WebSocketHandler {
         }
         var allMessage = dataAccess.getAuth(authToken).username() + " has joined the game as " + userColor;
         var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, allMessage);
-        connections.broadcast(authData.authToken(), notification);
+        connections.broadcastExcept(authData.authToken(), gameID, notification);
     }
 
     private void makeMove(Integer gameID, String authToken, ChessMove move, Session session) throws IOException, DataAccessException {
@@ -136,21 +135,21 @@ public class WebSocketHandler {
         dataAccess.updateGame(game);
 
         LoadGameMessage loadMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
-        connections.broadcastAll(loadMessage);
+        connections.broadcastToGame(gameID, loadMessage);
 
         String moveMessage = username + " moved from " + move.getStartPosition() + " to " + move.getEndPosition();
         Notification moveNotification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, moveMessage);
-        connections.broadcast(authData.authToken(), moveNotification);
+        connections.broadcastExcept(authData.authToken(), gameID, moveNotification);
 
         if (chessGame.isInCheckmate(chessGame.getTeamTurn())) {
             Notification checkmate = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Checkmate!");
-            connections.broadcastAll(checkmate);
+            connections.broadcastToGame(gameID, checkmate);
         } else if (chessGame.isInStalemate(chessGame.getTeamTurn())) {
             Notification stalemate = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Stalemate.");
-            connections.broadcastAll(stalemate);
+            connections.broadcastToGame(gameID, stalemate);
         } else if (chessGame.isInCheck(chessGame.getTeamTurn())) {
             Notification check = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Check!");
-            connections.broadcastAll(check);
+            connections.broadcastToGame(gameID, check);
         }
     }
 
@@ -176,7 +175,6 @@ public class WebSocketHandler {
         String whiteUsername = game.whiteUsername();
         String blackUsername = game.blackUsername();
 
-        // Determine role and clear from game if player
         if (Objects.equals(username, whiteUsername)) {
             role = "White";
             game = new GameData(game.gameID(), null, blackUsername, game.gameName(), game.game());
@@ -191,7 +189,7 @@ public class WebSocketHandler {
 
         String leaveMessage = username + " has left the game as " + role + ".";
         Notification notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, leaveMessage);
-        connections.broadcast(authToken, notification);
+        connections.broadcastExcept(authToken, gameID, notification);
 
     }
 
@@ -232,7 +230,7 @@ public class WebSocketHandler {
 
         String resignMessage = username + " has resigned. Game over.";
         Notification notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, resignMessage);
-        connections.broadcastAll(notification);
+        connections.broadcastToGame(gameID, notification);
     }
 
 }
