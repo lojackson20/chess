@@ -28,7 +28,7 @@ public class Server {
         this.gameService = new GameService(dataAccess);
     }
 
-    public Server(UserService userService, GameService gameService, WebSocketHandler webSocketHandler) {
+    public Server(UserService userService, GameService gameService, WebSocketHandler webSocketHandler) throws DataAccessException {
         this.userService = userService;
         this.gameService = gameService;
         this.webSocketHandler = new WebSocketHandler();

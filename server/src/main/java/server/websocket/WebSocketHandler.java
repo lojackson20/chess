@@ -7,11 +7,14 @@ package server.websocket;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
-import exception.ResponseException;
+import dataaccess.DataAccessException;
+import dataaccess.MySQLDataAccess;
+import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import websocket.commands.UserGameCommand;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
@@ -22,24 +25,29 @@ import java.util.Timer;
 public class WebSocketHandler {
 
     private final ConnectionManager connections = new ConnectionManager();
+    private final MySQLDataAccess dataAccess = new MySQLDataAccess();
+
+    public WebSocketHandler() throws DataAccessException {
+    }
 
     @OnWebSocketMessage
     // when i recieve a message what do i do? from (UserGameCommands)
-    public void onMessage(Session session, String message) throws IOException {
+    public void onMessage(Session session, String message) throws IOException, DataAccessException {
         UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
-        switch (command.type()) {
-            case CONNECT -> connect(command.visitorName(), session);
+        switch (command.getCommandType()) {
+            case CONNECT -> connect(command.getGameID(), command.getAuthToken(), session);
             case MAKE_MOVE -> makeMove(action.visitorName());
             case LEAVE -> leave();
             case RESIGN -> resign();
         }
     }
 
-    private void connect(String authToken, Session session) throws IOException {
-        connections.add(visitorName, session);
-        var message = String.format("%s is in the shop", visitorName);
-        var notification = new Notification(Notification.Type.ARRIVAL, message);
-        connections.broadcast(visitorName, notification);
+    private void connect(Integer gameID, String authToken, Session session) throws IOException, DataAccessException {
+        GameData game = dataAccess.getGame(gameID);
+        LoadGameMessage message = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
+        String sendMessage =  new Gson().toJson(message);
+        session.getRemote().sendString(sendMessage);
+        connections.add(authToken, session);
     }
 
     private void makeMove(String visitorName) throws IOException {
