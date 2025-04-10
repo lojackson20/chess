@@ -169,15 +169,22 @@ public class WebSocketHandler {
             return;
         }
 
-        // Remove the user's session from the connections manager
         connections.remove(authToken);
 
         String username = authData.username();
         String role;
-        if (Objects.equals(username, game.whiteUsername())) {
+        String whiteUsername = game.whiteUsername();
+        String blackUsername = game.blackUsername();
+
+        // Determine role and clear from game if player
+        if (Objects.equals(username, whiteUsername)) {
             role = "White";
-        } else if (Objects.equals(username, game.blackUsername())) {
+            game = new GameData(game.gameID(), null, blackUsername, game.gameName(), game.game());
+            dataAccess.updateGame(game);
+        } else if (Objects.equals(username, blackUsername)) {
             role = "Black";
+            game = new GameData(game.gameID(), whiteUsername, null, game.gameName(), game.game());
+            dataAccess.updateGame(game);
         } else {
             role = "observer";
         }
