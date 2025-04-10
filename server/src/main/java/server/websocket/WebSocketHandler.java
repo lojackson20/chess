@@ -15,6 +15,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.Notification;
 import websocket.messages.ServerMessage;
@@ -48,8 +49,7 @@ public class WebSocketHandler {
     private void connect(Integer gameID, String authToken, Session session) throws IOException, DataAccessException {
         GameData game = dataAccess.getGame(gameID);
         if (game == null) {
-            // Send error to client
-            DataAccessException error = new DataAccessException(ServerMessage.ServerMessageType.ERROR, "Invalid game ID");
+            ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Invalid game ID");
             session.getRemote().sendString(new Gson().toJson(error));
             return;
         }
@@ -57,8 +57,15 @@ public class WebSocketHandler {
         String sendMessage =  new Gson().toJson(message);
         session.getRemote().sendString(sendMessage);
         connections.add(authToken, session);
+
         String userColor;
         AuthData authData = dataAccess.getAuth(authToken);
+        if (authData == null) {
+            ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Invalid authtoken");
+            session.getRemote().sendString(new Gson().toJson(error));
+            return;
+        }
+
         if (Objects.equals(game.whiteUsername(), authData.username())) {
             userColor = "White";
         } else if (Objects.equals(game.blackUsername(), authData.username())) {
