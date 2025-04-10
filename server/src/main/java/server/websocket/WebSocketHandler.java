@@ -5,6 +5,9 @@
 //}
 package server.websocket;
 
+import chess.ChessGame;
+import chess.ChessMove;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
@@ -40,7 +43,7 @@ public class WebSocketHandler {
         UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
         switch (command.getCommandType()) {
             case CONNECT -> connect(command.getGameID(), command.getAuthToken(), session);
-            case MAKE_MOVE -> makeMove();
+            case MAKE_MOVE -> makeMove(command.getGameID(), command.getAuthToken(), "Chessmove", session);
 //            case LEAVE -> leave();
 //            case RESIGN -> resign();
         }
@@ -53,18 +56,20 @@ public class WebSocketHandler {
             session.getRemote().sendString(new Gson().toJson(error));
             return;
         }
-        LoadGameMessage message = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
-        String sendMessage =  new Gson().toJson(message);
-        session.getRemote().sendString(sendMessage);
-        connections.add(authToken, session);
 
-        String userColor;
         AuthData authData = dataAccess.getAuth(authToken);
         if (authData == null) {
             ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Invalid authtoken");
             session.getRemote().sendString(new Gson().toJson(error));
             return;
         }
+
+        LoadGameMessage message = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
+        String sendMessage =  new Gson().toJson(message);
+        session.getRemote().sendString(sendMessage);
+        connections.add(authToken, session);
+
+        String userColor;
 
         if (Objects.equals(game.whiteUsername(), authData.username())) {
             userColor = "White";
@@ -78,11 +83,78 @@ public class WebSocketHandler {
         connections.broadcast(authData.authToken(), notification);
     }
 
-    private void makeMove() throws IOException {
-//        connections.remove(visitorName);
-//        var message = String.format("%s left the shop", visitorName);
-//        var notification = new Notification(Notification.Type.DEPARTURE, message);
-//        connections.broadcast(visitorName, notification);
+    private void makeMove(Integer gameID, String authToken, ChessMove move, Session session) throws IOException, DataAccessException {
+        GameData game = dataAccess.getGame(gameID);
+        if (game == null) {
+//            Session session = connections.getSession(authToken);
+            if (session != null) {
+                ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Invalid game ID");
+                session.getRemote().sendString(new Gson().toJson(error));
+            }
+            return;
+        }
+
+        AuthData authData = dataAccess.getAuth(authToken);
+        if (authData == null) {
+//            Session session = connections.getSession(authToken);
+            if (session != null) {
+                ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Invalid authtoken");
+                session.getRemote().sendString(new Gson().toJson(error));
+            }
+            return;
+        }
+
+        ChessGame chessGame = game.game();
+        String username = authData.username();
+        boolean isWhite = Objects.equals(username, game.whiteUsername());
+        boolean isBlack = Objects.equals(username, game.blackUsername());
+
+        // Check if it's the player's turn
+        if ((chessGame.getTeamTurn() == ChessGame.TeamColor.WHITE && !isWhite) ||
+                (chessGame.getTeamTurn() == ChessGame.TeamColor.BLACK && !isBlack)) {
+//            Session session = connections.getSession(authToken);
+            if (session != null) {
+                ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Not your turn");
+                session.getRemote().sendString(new Gson().toJson(error));
+            }
+            return;
+        }
+
+        // Attempt to make the move
+        try {
+            chessGame.makeMove(move);
+        } catch (InvalidMoveException e) {
+//            Session session = connections.getSession(authToken);
+            if (session != null) {
+                ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Illegal move: " + e.getMessage());
+                session.getRemote().sendString(new Gson().toJson(error));
+            }
+            return;
+        }
+
+        // Update the game in the database
+        dataAccess.updateGame(game);
+
+        // Send updated game state to all clients in the game
+        LoadGameMessage loadMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
+        connections.broadcast(authToken, loadMessage);
+
+        // Notify others about the move
+        String moveMessage = username + " moved from " + move.getStartPosition() + " to " + move.getEndPosition();
+        Notification moveNotification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, moveMessage);
+        connections.broadcast(authToken, moveNotification);
+
+        // Check for check, checkmate, or stalemate
+        if (chessGame.isInCheckmate(chessGame.getTeamTurn())) {
+            Notification checkmate = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Checkmate!");
+            connections.broadcast(authToken, checkmate);
+        } else if (chessGame.isInStalemate(chessGame.getTeamTurn())) {
+            Notification stalemate = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Stalemate.");
+            connections.broadcast(authToken, stalemate);
+        } else if (chessGame.isInCheck(chessGame.getTeamTurn())) {
+            Notification check = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Check!");
+            connections.broadcast(authToken, check);
+        }
     }
 //
 //    public void leave(String petName, String sound) throws ResponseException {
