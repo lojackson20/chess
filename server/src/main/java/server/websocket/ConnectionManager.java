@@ -5,7 +5,10 @@
 //}
 package server.websocket;
 
+import model.AuthData;
+import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
+import websocket.messages.Notification;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
