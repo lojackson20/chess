@@ -31,11 +31,18 @@ public class ChessClient {
     private Map<Integer, Integer> gameIndexMap = new HashMap<>();
     private String serverUrl;
     private NotificationHandler notificationHandler;
+    private Boolean inGame = false;
+    private GameData currentGameData;
+    private WebSocketFacade ws;
 
     public ChessClient(String serverUrl, NotificationHandler notificationHandler) {
         server = new ServerFacade(serverUrl);
         this.serverUrl = serverUrl;
         this.notificationHandler = notificationHandler;
+    }
+
+    public String getPlayerName() {
+        return playerName;
     }
 
     public String evalPreLogin(String input) throws DataAccessException {
@@ -50,9 +57,32 @@ public class ChessClient {
             case "observe" -> observeGame(parameters);
             case "join" -> joinGame(parameters);
             case "signout" -> signOut();
+            case "redraw" -> redraw();
+            case "leave" -> leave();
+            case "move" -> makeMove();
+            case "resign" -> resign();
+            case "highlight" -> highlight();
             case "quit" -> "Goodbye!";
             default -> help();
         };
+    }
+
+    private String redraw() {
+        boolean isWhite = currentGameData.whiteUsername().equals(playerName);
+        drawBoard(isWhite, currentGameData);
+        return "Board redrawn";
+    }
+
+    private String leave() {
+    }
+
+    private String makeMove() {
+    }
+
+    private String resign() {
+    }
+
+    private String highlight() {
     }
 
 
@@ -191,6 +221,16 @@ public String listGames() throws DataAccessException {
     }
 
     public String help() {
+        if (inGame) {
+            return """
+                    - redraw
+                    - leave
+                    - move
+                    - resign
+                    - highlight
+                    - help
+                    """;
+        }
         if (state == State.SIGNEDOUT) {
             return """
                     Commands:

@@ -1,5 +1,6 @@
 package ui;
 import com.google.gson.Gson;
+import model.GameData;
 import ui.websocket.NotificationHandler;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.Notification;
@@ -42,7 +43,11 @@ public class Repl implements NotificationHandler {
 
     public void notify(String notification) {
         LoadGameMessage loadGameMessage = new Gson().fromJson(notification, LoadGameMessage.class);
-        client.drawBoard(true, loadGameMessage.gameData());
+        GameData gameData = loadGameMessage.gameData();
+
+        boolean isWhitePerspective = client.getPlayerName().equals(gameData.whiteUsername());
+        System.out.print("\n");
+        client.drawBoard(isWhitePerspective, loadGameMessage.gameData());
         printPrompt();
     }
 }
