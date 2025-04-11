@@ -1,12 +1,18 @@
 package ui;
+import com.google.gson.Gson;
+import ui.websocket.NotificationHandler;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.Notification;
+
+import static java.awt.Color.RED;
 import static ui.EscapeSequences.*;
 import java.util.Scanner;
 
-public class Repl {
+public class Repl implements NotificationHandler {
     private final ChessClient client;
 
     public Repl(String serverUrl) {
-        client = new ChessClient(serverUrl);
+        client = new ChessClient(serverUrl, this);
     }
 
     public void run() {
@@ -32,6 +38,12 @@ public class Repl {
 
     private void printPrompt() {
         System.out.print("\n" + RESET_TEXT_COLOR + ">>> " + SET_TEXT_COLOR_MAGENTA);
+    }
+
+    public void notify(String notification) {
+        LoadGameMessage loadGameMessage = new Gson().fromJson(notification, LoadGameMessage.class);
+        client.drawBoard(true, loadGameMessage.gameData());
+        printPrompt();
     }
 }
 

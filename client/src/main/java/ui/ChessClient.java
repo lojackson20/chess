@@ -18,6 +18,9 @@ import requestandresult.RegisterRequest;
 import requestandresult.RegisterResult;
 import requestandresult.CreateGameRequest;
 import requestandresult.JoinGameRequest;
+import ui.websocket.NotificationHandler;
+import ui.websocket.WebSocketFacade;
+
 import static ui.EscapeSequences.*;
 
 public class ChessClient {
@@ -26,9 +29,13 @@ public class ChessClient {
     private final ServerFacade server;
     private State state = State.SIGNEDOUT;
     private Map<Integer, Integer> gameIndexMap = new HashMap<>();
+    private String serverUrl;
+    private NotificationHandler notificationHandler;
 
-    public ChessClient(String serverUrl) {
+    public ChessClient(String serverUrl, NotificationHandler notificationHandler) {
         server = new ServerFacade(serverUrl);
+        this.serverUrl = serverUrl;
+        this.notificationHandler = notificationHandler;
     }
 
     public String evalPreLogin(String input) throws DataAccessException {
@@ -59,7 +66,6 @@ public class ChessClient {
                 return "Invalid game number. Please enter a valid number from the list.";
             }
 
-            // Look up the real game ID
             Integer gameID = gameIndexMap.get(gameIndex);
             if (gameID == null) {
                 return "That game doesn't exist! Please list games again.";
@@ -148,12 +154,11 @@ public String listGames() throws DataAccessException {
         if (params.length == 2) {
             int gameIndex;
             try {
-                gameIndex = Integer.parseInt(params[0]); // User enters an index
+                gameIndex = Integer.parseInt(params[0]);
             } catch (NumberFormatException e) {
                 return "Invalid game number. Please enter a valid number from the list.";
             }
 
-            // Look up the real game ID from the mapping
             Integer gameID = gameIndexMap.get(gameIndex);
             if (gameID == null) {
                 return "That game doesn't exist! Please list games again.";
@@ -166,7 +171,9 @@ public String listGames() throws DataAccessException {
 
             try {
                 GameData gameData = server.joinGame(authToken, new JoinGameRequest(authToken, color, gameID));
-                drawBoard(!color.equals("BLACK"), gameData);
+//                drawBoard(!color.equals("BLACK"), gameData);
+                WebSocketFacade ws = new WebSocketFacade(serverUrl, notificationHandler);
+                ws.connect(authToken, gameID);
                 return "You joined game " + gameIndex + " as " + color;
             } catch (DataAccessException e) {
                 return "Failed to join game: Game is full or invalid request.";
