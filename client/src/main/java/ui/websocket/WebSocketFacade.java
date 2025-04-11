@@ -72,6 +72,20 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
-    public void sendMove(ChessMove move) {
+    public void makeMove(ChessMove move) {
+        if (authToken == null || gameID == null || session == null || !session.isOpen()) {
+            System.out.println("Cannot send move: not connected.");
+            return;
+        }
+
+        var command = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID, move);
+        try {
+            session.getBasicRemote().sendText(new Gson().toJson(command));
+        } catch (IOException e) {
+            System.out.println("Failed to send move: " + e.getMessage());
+        }
+    }
+
+    public void resign() {
     }
 }

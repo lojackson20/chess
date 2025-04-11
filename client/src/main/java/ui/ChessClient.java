@@ -105,7 +105,7 @@ public class ChessClient {
             ChessPosition end = new ChessPosition(endRow, endCol);
             ChessMove move = new ChessMove(start, end, null); // handle promotion if needed
 
-            ws.sendMove(move);
+            ws.makeMove(move);
             return "Move sent.";
         } catch (Exception e) {
             return "Error processing move: " + e.getMessage();
