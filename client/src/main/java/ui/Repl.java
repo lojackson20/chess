@@ -48,6 +48,7 @@ public class Repl implements NotificationHandler {
         boolean isWhitePerspective = client.getPlayerName().equals(gameData.whiteUsername());
         System.out.print("\n");
         client.drawBoard(isWhitePerspective, loadGameMessage.gameData());
+        client.updateGameData(loadGameMessage.gameData());
         printPrompt();
     }
 }

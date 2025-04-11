@@ -68,6 +68,10 @@ public class ChessClient {
     }
 
     private String redraw() {
+        if (currentGameData == null) {
+            return "No game currently loaded to redraw.";
+        }
+
         boolean isWhite = currentGameData.whiteUsername().equals(playerName);
         drawBoard(isWhite, currentGameData);
         return "Board redrawn";
@@ -357,6 +361,11 @@ public String listGames() throws DataAccessException {
         }
         return "hello";
     }
+
+    public void updateGameData (GameData gameData){
+        currentGameData = gameData;
+    }
+
 }
 
 // better error message for signin that doesnt exist----***
