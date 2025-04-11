@@ -128,6 +128,36 @@ public class ChessClient {
     }
 
     private String highlight() {
+        if (currentGameData == null) {
+            return "No game is currently loaded.";
+        }
+
+        System.out.println("Enter position to highlight legal moves for (row col):");
+        String input = System.console().readLine();
+        String[] tokens = input.split(" ");
+        if (tokens.length != 2) {
+            return "Invalid input format.";
+        }
+
+        try {
+            int row = Integer.parseInt(tokens[0]);
+            int col = Integer.parseInt(tokens[1]);
+            ChessPosition pos = new ChessPosition(row, col);
+            ChessPiece piece = currentGameData.game().getBoard().getPiece(pos);
+
+            if (piece == null || !piece.getTeamColor().name().equalsIgnoreCase(playerName)) {
+                return "Invalid selection: no piece or not your piece.";
+            }
+
+            var legalMoves = currentGameData.game().validMoves(pos);
+            System.out.println("Legal moves for piece at " + row + "," + col + ":");
+            for (var move : legalMoves) {
+                System.out.println(" -> " + move.getEndPosition().getRow() + "," + move.getEndPosition().getColumn());
+            }
+            return "Legal moves highlighted.";
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
     }
 
 
