@@ -9,6 +9,7 @@
 package ui.websocket;
 
 import chess.ChessBoard;
+import chess.ChessMove;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import websocket.commands.UserGameCommand;
@@ -61,14 +62,16 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
-//    public void leavePetShop(String visitorName) throws ResponseException {
-//        try {
-//            var action = new Action(Action.Type.EXIT, visitorName);
-//            this.session.getBasicRemote().sendText(new Gson().toJson(action));
-//            this.session.close();
-//        } catch (IOException ex) {
-//            throw new ResponseException(500, ex.getMessage());
-//        }
-//    }
+    public void leave(String authToken, Integer gameID) throws DataAccessException {
+        try {
+            var action = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID);
+            this.session.getBasicRemote().sendText(new Gson().toJson(action));
+            this.session.close();
+        } catch (IOException ex) {
+            throw new DataAccessException(ex.getMessage(), 500);
+        }
+    }
 
+    public void sendMove(ChessMove move) {
+    }
 }

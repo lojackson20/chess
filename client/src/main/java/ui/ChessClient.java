@@ -4,10 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 import server.ServerFacade;
 import dataaccess.DataAccessException;
 import model.GameData;
@@ -77,13 +74,57 @@ public class ChessClient {
         return "Board redrawn";
     }
 
-    private String leave() {
+    private String leave() throws DataAccessException {
+        if (ws != null) {
+            ws.leave(authToken, currentGameData.gameID());
+            ws = null;
+        }
+        currentGameData = null;
+        return "You have left the game. Returning to main menu.";
     }
 
     private String makeMove() {
+        if (currentGameData == null) {
+            return "You are not in a game.";
+        }
+
+        try {
+            System.out.println("Enter move in format: startRow startCol endRow endCol");
+            String input = System.console().readLine();
+            String[] tokens = input.split(" ");
+            if (tokens.length != 4) {
+                return "Invalid format. Try again.";
+            }
+
+            int startRow = Integer.parseInt(tokens[0]);
+            int startCol = Integer.parseInt(tokens[1]);
+            int endRow = Integer.parseInt(tokens[2]);
+            int endCol = Integer.parseInt(tokens[3]);
+
+            ChessPosition start = new ChessPosition(startRow, startCol);
+            ChessPosition end = new ChessPosition(endRow, endCol);
+            ChessMove move = new ChessMove(start, end, null); // handle promotion if needed
+
+            ws.sendMove(move);
+            return "Move sent.";
+        } catch (Exception e) {
+            return "Error processing move: " + e.getMessage();
+        }
     }
 
     private String resign() {
+        if (currentGameData == null) {
+            return "You are not in a game.";
+        }
+
+        System.out.println("Are you sure you want to resign? (yes/no)");
+        String input = System.console().readLine();
+        if ("yes".equalsIgnoreCase(input)) {
+            ws.resign();
+            return "You have resigned.";
+        } else {
+            return "Resignation canceled.";
+        }
     }
 
     private String highlight() {
