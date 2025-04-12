@@ -12,6 +12,7 @@ import chess.ChessBoard;
 import chess.ChessMove;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.*;
 
@@ -66,19 +67,19 @@ public class WebSocketFacade extends Endpoint {
         try {
             var action = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID);
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
-            this.session.close();
+//            this.session.close();
         } catch (IOException ex) {
             throw new DataAccessException(ex.getMessage(), 500);
         }
     }
 
-    public void makeMove(ChessMove move) {
+    public void makeMove(String authToken, Integer gameID, ChessMove move) {
         if (authToken == null || gameID == null || session == null || !session.isOpen()) {
             System.out.println("Cannot send move: not connected.");
             return;
         }
 
-        var command = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID, move);
+        var command = new MakeMoveCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID, move);
         try {
             session.getBasicRemote().sendText(new Gson().toJson(command));
         } catch (IOException e) {
@@ -86,6 +87,17 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
-    public void resign() {
+    public void resign(String authToken, Integer gameID) {
+        if (authToken == null || gameID == null || session == null || !session.isOpen()) {
+            System.out.println("Cannot resign: not connected.");
+            return;
+        }
+
+        var command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
+        try {
+            session.getBasicRemote().sendText(new Gson().toJson(command));
+        } catch (IOException e) {
+            System.out.println("Failed to send resign command: " + e.getMessage());
+        }
     }
 }

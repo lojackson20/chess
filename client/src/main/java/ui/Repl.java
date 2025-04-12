@@ -1,5 +1,6 @@
 package ui;
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import model.GameData;
 import ui.websocket.NotificationHandler;
 import websocket.messages.LoadGameMessage;
@@ -7,13 +8,19 @@ import websocket.messages.Notification;
 
 import static java.awt.Color.RED;
 import static ui.EscapeSequences.*;
+
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Repl implements NotificationHandler {
     private final ChessClient client;
 
     public Repl(String serverUrl) {
-        client = new ChessClient(serverUrl, this);
+        try {
+            client = new ChessClient(serverUrl, this);
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void run() {
@@ -47,7 +54,7 @@ public class Repl implements NotificationHandler {
 
         boolean isWhitePerspective = client.getPlayerName().equals(gameData.whiteUsername());
         System.out.print("\n");
-        client.drawBoard(isWhitePerspective, loadGameMessage.gameData());
+        client.drawBoard(isWhitePerspective, loadGameMessage.gameData(), new ArrayList<>());
         client.updateGameData(loadGameMessage.gameData());
         printPrompt();
     }

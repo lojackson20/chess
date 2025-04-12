@@ -1,8 +1,7 @@
 package ui;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.Array;
+import java.util.*;
 
 import chess.*;
 import server.ServerFacade;
@@ -32,10 +31,11 @@ public class ChessClient {
     private GameData currentGameData;
     private WebSocketFacade ws;
 
-    public ChessClient(String serverUrl, NotificationHandler notificationHandler) {
+    public ChessClient(String serverUrl, NotificationHandler notificationHandler) throws DataAccessException {
         server = new ServerFacade(serverUrl);
         this.serverUrl = serverUrl;
         this.notificationHandler = notificationHandler;
+        this.ws = new WebSocketFacade(serverUrl, notificationHandler);
     }
 
     public String getPlayerName() {
@@ -70,16 +70,17 @@ public class ChessClient {
         }
 
         boolean isWhite = currentGameData.whiteUsername().equals(playerName);
-        drawBoard(isWhite, currentGameData);
+        drawBoard(isWhite, currentGameData, new ArrayList<>());
         return "Board redrawn";
     }
 
     private String leave() throws DataAccessException {
-        if (ws != null) {
-            ws.leave(authToken, currentGameData.gameID());
-            ws = null;
-        }
+
+        ws.leave(authToken, currentGameData.gameID());
+//        ws = null;
+
         currentGameData = null;
+        inGame = false;
         return "You have left the game. Returning to main menu.";
     }
 
@@ -105,7 +106,7 @@ public class ChessClient {
             ChessPosition end = new ChessPosition(endRow, endCol);
             ChessMove move = new ChessMove(start, end, null); // handle promotion if needed
 
-            ws.makeMove(move);
+            ws.makeMove(authToken, currentGameData.gameID(), move);
             return "Move sent.";
         } catch (Exception e) {
             return "Error processing move: " + e.getMessage();
@@ -118,9 +119,11 @@ public class ChessClient {
         }
 
         System.out.println("Are you sure you want to resign? (yes/no)");
-        String input = System.console().readLine();
+        Scanner scanner = new Scanner(System.in);
+        String input = scanner.nextLine();
+//        String input = System.console().readLine();
         if ("yes".equalsIgnoreCase(input)) {
-            ws.resign();
+            ws.resign(authToken, currentGameData.gameID());
             return "You have resigned.";
         } else {
             return "Resignation canceled.";
@@ -128,12 +131,9 @@ public class ChessClient {
     }
 
     private String highlight() {
-        if (currentGameData == null) {
-            return "No game is currently loaded.";
-        }
-
-        System.out.println("Enter position to highlight legal moves for (row col):");
-        String input = System.console().readLine();
+        System.out.println("Enter position to highlight legal moves for (row col):\n");
+        Scanner scanner = new Scanner(System.in);
+        String input = scanner.nextLine();
         String[] tokens = input.split(" ");
         if (tokens.length != 2) {
             return "Invalid input format.";
@@ -145,15 +145,18 @@ public class ChessClient {
             ChessPosition pos = new ChessPosition(row, col);
             ChessPiece piece = currentGameData.game().getBoard().getPiece(pos);
 
-            if (piece == null || !piece.getTeamColor().name().equalsIgnoreCase(playerName)) {
-                return "Invalid selection: no piece or not your piece.";
+
+            ArrayList<ChessMove> legalMoves = (ArrayList<ChessMove>) currentGameData.game().validMoves(pos);
+            ArrayList<ChessPosition> highlightedPos = new ArrayList<>();
+            for (ChessMove move : legalMoves) {
+                highlightedPos.add(move.getEndPosition());
             }
 
-            var legalMoves = currentGameData.game().validMoves(pos);
-            System.out.println("Legal moves for piece at " + row + "," + col + ":");
-            for (var move : legalMoves) {
-                System.out.println(" -> " + move.getEndPosition().getRow() + "," + move.getEndPosition().getColumn());
-            }
+            boolean isWhite = playerName.equals(currentGameData.whiteUsername());
+            drawBoard(isWhite, currentGameData, highlightedPos);
+//            for (var move : legalMoves) {
+//                System.out.println(" -> " + move.getEndPosition().getRow() + "," + move.getEndPosition().getColumn());
+//            }
             return "Legal moves highlighted.";
         } catch (Exception e) {
             return "Error: " + e.getMessage();
@@ -178,7 +181,7 @@ public class ChessClient {
 
             try {
                 GameData gameData = server.observeGame(authToken, gameID);
-                drawBoard(true, gameData);
+                drawBoard(true, gameData, new ArrayList<>());
                 return "You are now observing game " + gameIndex;
             } catch (Exception e) {
                 return "Failed to observe game. Please try again.";
@@ -279,6 +282,7 @@ public String listGames() throws DataAccessException {
 //                drawBoard(!color.equals("BLACK"), gameData);
                 WebSocketFacade ws = new WebSocketFacade(serverUrl, notificationHandler);
                 ws.connect(authToken, gameID);
+                inGame = true;
                 return "You joined game " + gameIndex + " as " + color;
             } catch (DataAccessException e) {
                 return "Failed to join game: Game is full or invalid request.";
@@ -292,6 +296,7 @@ public String listGames() throws DataAccessException {
         server.logoutUser(authToken);
         playerName = null;
         authToken = null;
+        state = State.SIGNEDOUT;
         return "Signed out successfully.";
     }
 
@@ -334,7 +339,7 @@ public String listGames() throws DataAccessException {
     }
 
 
-    public void drawBoard(boolean isWhitePerspective, GameData gameData) {
+    public void drawBoard(boolean isWhitePerspective, GameData gameData, ArrayList<ChessPosition> highlighted) {
         ChessBoard board = gameData.game().getBoard();
 
         if (isWhitePerspective) {
@@ -342,7 +347,7 @@ public String listGames() throws DataAccessException {
                 System.out.print(i);
                 for (int j = 1; j <= 8; j++) {
                     ChessPiece piece = board.getPiece(new ChessPosition(i, j));
-                    printSquare(piece, new ChessPosition(i, j));
+                    printSquare(piece, new ChessPosition(i, j), highlighted);
                 }
                 System.out.print(RESET_BG_COLOR);
                 System.out.print("\n");
@@ -362,7 +367,7 @@ public String listGames() throws DataAccessException {
                 System.out.print(i);
                 for (int j = 8; j >= 1; j--) {
                     ChessPiece piece = board.getPiece(new ChessPosition(i, j));
-                    printSquare(piece, new ChessPosition(i, j));
+                    printSquare(piece, new ChessPosition(i, j), highlighted);
                 }
                 System.out.print(RESET_BG_COLOR);
                 System.out.print("\n");
@@ -380,13 +385,23 @@ public String listGames() throws DataAccessException {
     }
 
 
-    public void printSquare(ChessPiece piece, ChessPosition position) {
+    public void printSquare(ChessPiece piece, ChessPosition position, ArrayList<ChessPosition> highlighted) {
         if ((position.getRow() + position.getColumn()) % 2 == 0) {
-            System.out.print(SET_BG_COLOR_DARK_GREEN);
-            System.out.print(whatPiece(piece));
+            if (highlighted.contains(position)) {
+                System.out.print(SET_BG_COLOR_RED);
+                System.out.print(whatPiece(piece));
+            } else {
+                System.out.print(SET_BG_COLOR_DARK_GREEN);
+                System.out.print(whatPiece(piece));
+            }
         } else {
-            System.out.print(SET_BG_COLOR_WHITE);
-            System.out.print(whatPiece(piece));
+            if (highlighted.contains(position)) {
+                System.out.print(SET_BG_COLOR_LIGHT_GREY);
+                System.out.print(whatPiece(piece));
+            } else {
+                System.out.print(SET_BG_COLOR_WHITE);
+                System.out.print(whatPiece(piece));
+            }
         }
     }
 

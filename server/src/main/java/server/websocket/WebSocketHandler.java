@@ -169,6 +169,15 @@ public class WebSocketHandler {
         }
 
         connections.remove(authToken);
+        if (authData.username().equals(game.blackUsername())) {
+            GameData updatedGame = new GameData(gameID, game.whiteUsername(), null, game.gameName(), game.game());
+            dataAccess.updateGame(updatedGame);
+        }
+        if (authData.username().equals(game.whiteUsername())) {
+            GameData updatedGame = new GameData(gameID, null, game.blackUsername(), game.gameName(), game.game());
+            dataAccess.updateGame(updatedGame);
+        }
+
 
         String username = authData.username();
         String role;
