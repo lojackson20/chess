@@ -91,7 +91,8 @@ public class ChessClient {
 
         try {
             System.out.println("Enter move in format: startRow startCol endRow endCol");
-            String input = System.console().readLine();
+            Scanner scanner = new Scanner(System.in);
+            String input = scanner.nextLine();
             String[] tokens = input.split(" ");
             if (tokens.length != 4) {
                 return "Invalid format. Try again.";
