@@ -90,7 +90,7 @@ public class ChessClient {
         }
 
         try {
-            System.out.println("Enter move in format: startRow startCol endRow endCol");
+            System.out.println("Enter move in format: startRow startColLetter endRow endColLetter");
             Scanner scanner = new Scanner(System.in);
             String input = scanner.nextLine();
             String[] tokens = input.split(" ");
@@ -99,9 +99,9 @@ public class ChessClient {
             }
 
             int startRow = Integer.parseInt(tokens[0]);
-            int startCol = Integer.parseInt(tokens[1]);
+            int startCol = columnLetterToNumber(tokens[1]);
             int endRow = Integer.parseInt(tokens[2]);
-            int endCol = Integer.parseInt(tokens[3]);
+            int endCol = columnLetterToNumber(tokens[3]);
 
             ChessPosition start = new ChessPosition(startRow, startCol);
             ChessPosition end = new ChessPosition(endRow, endCol);
@@ -142,7 +142,7 @@ public class ChessClient {
 
         try {
             int row = Integer.parseInt(tokens[0]);
-            int col = Integer.parseInt(tokens[1]);
+            int col = columnLetterToNumber(tokens[1]);
             ChessPosition pos = new ChessPosition(row, col);
             ChessPiece piece = currentGameData.game().getBoard().getPiece(pos);
 
@@ -451,6 +451,14 @@ public String listGames() throws DataAccessException {
 
     public void updateGameData (GameData gameData){
         currentGameData = gameData;
+    }
+
+    private int columnLetterToNumber(String col) {
+        col = col.toLowerCase();
+        if (col.length() != 1 || col.charAt(0) < 'a' || col.charAt(0) > 'h') {
+            throw new IllegalArgumentException("Invalid column letter: " + col);
+        }
+        return col.charAt(0) - 'a' + 1;
     }
 
 }
