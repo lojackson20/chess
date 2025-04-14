@@ -5,6 +5,7 @@ import model.GameData;
 import ui.websocket.NotificationHandler;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.Notification;
+import websocket.messages.ServerMessage;
 
 import static java.awt.Color.RED;
 import static ui.EscapeSequences.*;
@@ -48,15 +49,26 @@ public class Repl implements NotificationHandler {
         System.out.print("\n" + RESET_TEXT_COLOR + ">>> " + SET_TEXT_COLOR_MAGENTA);
     }
 
-    public void notify(String notification) {
-        LoadGameMessage loadGameMessage = new Gson().fromJson(notification, LoadGameMessage.class);
-        GameData gameData = loadGameMessage.gameData();
+    public void notify(String notification, ServerMessage.ServerMessageType type) {
+        if (type == ServerMessage.ServerMessageType.NOTIFICATION) {
+            Notification newNotification = new Gson().fromJson(notification, Notification.class);
+            String message = newNotification.message();
 
-        boolean isWhitePerspective = client.getPlayerName().equals(gameData.whiteUsername());
-        System.out.print("\n");
-        client.drawBoard(isWhitePerspective, loadGameMessage.gameData(), new ArrayList<>());
-        client.updateGameData(loadGameMessage.gameData());
-        printPrompt();
+
+        }
+
+        if (type == ServerMessage.ServerMessageType.LOAD_GAME) {
+            LoadGameMessage loadGameMessage = new Gson().fromJson(notification, LoadGameMessage.class);
+            GameData gameData = loadGameMessage.gameData();
+
+            boolean isWhitePerspective = client.getPlayerName().equals(gameData.whiteUsername());
+            System.out.print("\n");
+            client.drawBoard(isWhitePerspective, loadGameMessage.gameData(), new ArrayList<>());
+            client.updateGameData(loadGameMessage.gameData());
+            printPrompt();
+        }
+
+
     }
 }
 
