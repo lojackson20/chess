@@ -105,8 +105,28 @@ public class ChessClient {
 
             ChessPosition start = new ChessPosition(startRow, startCol);
             ChessPosition end = new ChessPosition(endRow, endCol);
-            ChessMove move = new ChessMove(start, end, null); // handle promotion if needed
+            ChessPiece movingPiece = currentGameData.game().getBoard().getPiece(start);
 
+            ChessPiece.PieceType promotionPiece = null;
+
+            if (movingPiece != null && movingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
+                boolean isWhite = movingPiece.getTeamColor() == ChessGame.TeamColor.WHITE;
+                if ((isWhite && endRow == 8) || (!isWhite && endRow == 1)) {
+                    System.out.println("Choose a piece to promote to: QUEEN, ROOK, BISHOP, KNIGHT");
+                    String choice = scanner.nextLine().trim().toUpperCase();
+                    switch (choice) {
+                        case "QUEEN" -> promotionPiece = ChessPiece.PieceType.QUEEN;
+                        case "ROOK" -> promotionPiece = ChessPiece.PieceType.ROOK;
+                        case "BISHOP" -> promotionPiece = ChessPiece.PieceType.BISHOP;
+                        case "KNIGHT" -> promotionPiece = ChessPiece.PieceType.KNIGHT;
+                        default -> {
+                            return "Invalid promotion piece type.";
+                        }
+                    }
+                }
+            }
+
+            ChessMove move = new ChessMove(start, end, promotionPiece);
             ws.makeMove(authToken, currentGameData.gameID(), move);
             return "Move sent.";
         } catch (Exception e) {
@@ -122,7 +142,6 @@ public class ChessClient {
         System.out.println("Are you sure you want to resign? (yes/no)");
         Scanner scanner = new Scanner(System.in);
         String input = scanner.nextLine();
-//        String input = System.console().readLine();
         if ("yes".equalsIgnoreCase(input)) {
             ws.resign(authToken, currentGameData.gameID());
             return "You have resigned.";
@@ -179,7 +198,12 @@ public class ChessClient {
 
             try {
                 GameData gameData = server.observeGame(authToken, gameID);
-                drawBoard(true, gameData, new ArrayList<>());
+                this.currentGameData = gameData;
+                this.inGame = true;
+
+                this.ws.connect(authToken, gameID);
+
+//                drawBoard(true, gameData, new ArrayList<>());
                 return "You are now observing game " + gameIndex;
             } catch (Exception e) {
                 return "Failed to observe game. Please try again.";
@@ -276,11 +300,17 @@ public String listGames() throws DataAccessException {
             }
 
             try {
+                // Join game on server and get fresh GameData
                 GameData gameData = server.joinGame(authToken, new JoinGameRequest(authToken, color, gameID));
-//                drawBoard(!color.equals("BLACK"), gameData);
-                WebSocketFacade ws = new WebSocketFacade(serverUrl, notificationHandler);
-                ws.connect(authToken, gameID);
+
+                // Set game state
+                currentGameData = gameData;
                 inGame = true;
+
+                // Reconnect WebSocket and assign to field
+                ws = new WebSocketFacade(serverUrl, notificationHandler);
+                ws.connect(authToken, gameID);
+
                 return "You joined game " + gameIndex + " as " + color;
             } catch (DataAccessException e) {
                 return "Failed to join game: Game is full or invalid request.";

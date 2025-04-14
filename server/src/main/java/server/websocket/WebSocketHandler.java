@@ -93,6 +93,11 @@ public class WebSocketHandler {
             }
             return;
         }
+        
+        if (!game.stillPlaying()) {
+            ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Game over, you can't move");
+            session.getRemote().sendString(new Gson().toJson(error));
+        }
 
         AuthData authData = dataAccess.getAuth(authToken);
         if (authData == null) {
@@ -111,7 +116,7 @@ public class WebSocketHandler {
         if ((chessGame.getTeamTurn() == ChessGame.TeamColor.WHITE && !isWhite) ||
                 (chessGame.getTeamTurn() == ChessGame.TeamColor.BLACK && !isBlack)) {
             if (session != null) {
-                ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Not your turn");
+                ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Can't make move (not your turn or game has ended)");
                 session.getRemote().sendString(new Gson().toJson(error));
             }
             return;
@@ -132,16 +137,28 @@ public class WebSocketHandler {
         LoadGameMessage loadMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
         connections.broadcastToGame(gameID, loadMessage);
 
-        String moveMessage = username + " moved from " + move.getStartPosition() + " to " + move.getEndPosition();
+        String moveMessage = username + " moved from " + move.getStartPosition().toString() + " to " + move.getEndPosition().toString();
         Notification moveNotification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, moveMessage);
         connections.broadcastExcept(authData.authToken(), gameID, moveNotification);
 
+        GameData gameData = new GameData(
+                game.gameID(),
+                game.whiteUsername(),
+                game.blackUsername(),
+                game.gameName(),
+                game.game(),
+                false
+        );
         if (chessGame.isInCheckmate(chessGame.getTeamTurn())) {
             Notification checkmate = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Checkmate!");
             connections.broadcastToGame(gameID, checkmate);
+            GameData newGameData = gameData;
+            dataAccess.updateGame(newGameData);
         } else if (chessGame.isInStalemate(chessGame.getTeamTurn())) {
             Notification stalemate = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Stalemate.");
             connections.broadcastToGame(gameID, stalemate);
+            GameData newGameData = gameData;
+            dataAccess.updateGame(newGameData);
         } else if (chessGame.isInCheck(chessGame.getTeamTurn())) {
             Notification check = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Check!");
             connections.broadcastToGame(gameID, check);
@@ -227,7 +244,8 @@ public class WebSocketHandler {
                 null,
                 null,
                 game.gameName(),
-                game.game()
+                game.game(),
+                false
         );
 
         dataAccess.updateGame(updatedGame);

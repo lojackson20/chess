@@ -44,7 +44,7 @@ public class ConnectionManager {
 
             Connection connection = connections.get(token);
             if (connection != null && connection.session.isOpen()) {
-                connection.send(message.toString());
+                connection.send(message.toString()); //.tostring()
             } else {
                 removeList.add(token);
             }

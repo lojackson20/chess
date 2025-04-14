@@ -88,7 +88,7 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPiece piece = board.getPiece(move.getStartPosition());
         if (piece == null || piece.getTeamColor() != teamTurn) {
-            throw new InvalidMoveException("You can't do that, there isn't a piece there");
+            throw new InvalidMoveException("You can't do that, there isn't a piece there or it isn't your teams piece");
         }
         if (!validMoves(move.getStartPosition()).contains(move)) {
             throw new InvalidMoveException("You can't do that, that piece doesn't do that.");

@@ -62,9 +62,9 @@ public class Repl implements NotificationHandler {
             LoadGameMessage loadGameMessage = gson.fromJson(notification, LoadGameMessage.class);
             GameData gameData = loadGameMessage.gameData();
 
-            boolean isWhitePerspective = client.getPlayerName().equals(gameData.whiteUsername());
+            boolean isNotWhitePerspective = client.getPlayerName().equals(gameData.blackUsername());
             System.out.print("\n");
-            client.drawBoard(isWhitePerspective, gameData, new ArrayList<>());
+            client.drawBoard(!isNotWhitePerspective, gameData, new ArrayList<>());
             client.updateGameData(gameData);
             printPrompt();
         } else if (baseMessage.getServerMessageType() == ServerMessage.ServerMessageType.ERROR) {
@@ -78,4 +78,12 @@ public class Repl implements NotificationHandler {
 
     }
 }
+
+
+// show that observer has joined********
+// show actual position that it moved from in the notification
+// cant move not your piece********
+// in chessclient handle promotion piece*******
+// change error message to invalid move********
+
 
