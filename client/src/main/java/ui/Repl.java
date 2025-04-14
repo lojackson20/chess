@@ -75,25 +75,6 @@ public class Repl implements NotificationHandler {
             System.out.print("\n" + SET_TEXT_COLOR_RED + "Unknown message type received from server." + RESET_TEXT_COLOR);
             printPrompt();
         }
-//        if (type == ServerMessage.ServerMessageType.NOTIFICATION) {
-//            Notification newNotification = new Gson().fromJson(notification, Notification.class);
-//            String message = newNotification.message();
-//
-//
-//        }
-//
-//        if (type == ServerMessage.ServerMessageType.LOAD_GAME) {
-
-//        }
-//        LoadGameMessage loadGameMessage = new Gson().fromJson(notification, LoadGameMessage.class);
-//        GameData gameData = loadGameMessage.gameData();
-//
-//        boolean isWhitePerspective = client.getPlayerName().equals(gameData.whiteUsername());
-//        System.out.print("\n");
-//        client.drawBoard(isWhitePerspective, loadGameMessage.gameData(), new ArrayList<>());
-//        client.updateGameData(loadGameMessage.gameData());
-//        printPrompt();
-
 
     }
 }
