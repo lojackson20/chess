@@ -89,49 +89,66 @@ public class ChessClient {
             return "You are not in a game.";
         }
 
+        System.out.println("Enter move in format: startRow startColLetter endRow endColLetter");
+        Scanner scanner = new Scanner(System.in);
+        String input = scanner.nextLine();
+        String[] tokens = input.split(" ");
+
+        if (tokens.length != 4) {
+            return "Invalid format. Try again.";
+        }
+
+        int startRow, endRow, startCol, endCol;
         try {
-            System.out.println("Enter move in format: startRow startColLetter endRow endColLetter");
-            Scanner scanner = new Scanner(System.in);
-            String input = scanner.nextLine();
-            String[] tokens = input.split(" ");
-            if (tokens.length != 4) {
-                return "Invalid format. Try again.";
-            }
+            startRow = Integer.parseInt(tokens[0]);
+            startCol = columnLetterToNumber(tokens[1]);
+            endRow = Integer.parseInt(tokens[2]);
+            endCol = columnLetterToNumber(tokens[3]);
+        } catch (Exception e) {
+            return "Invalid input. Please enter valid numbers and column letters.";
+        }
 
-            int startRow = Integer.parseInt(tokens[0]);
-            int startCol = columnLetterToNumber(tokens[1]);
-            int endRow = Integer.parseInt(tokens[2]);
-            int endCol = columnLetterToNumber(tokens[3]);
+        ChessPosition start = new ChessPosition(startRow, startCol);
+        ChessPosition end = new ChessPosition(endRow, endCol);
+        ChessPiece movingPiece = currentGameData.game().getBoard().getPiece(start);
 
-            ChessPosition start = new ChessPosition(startRow, startCol);
-            ChessPosition end = new ChessPosition(endRow, endCol);
-            ChessPiece movingPiece = currentGameData.game().getBoard().getPiece(start);
+        ChessPiece.PieceType promotionPiece = getPromotionPieceIfApplicable(movingPiece, endRow, scanner);
+        if (promotionPiece == null && isPawnPromotion(movingPiece, endRow)) {
+            return "Invalid promotion piece type.";
+        }
 
-            ChessPiece.PieceType promotionPiece = null;
-
-            if (movingPiece != null && movingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
-                boolean isWhite = movingPiece.getTeamColor() == ChessGame.TeamColor.WHITE;
-                if ((isWhite && endRow == 8) || (!isWhite && endRow == 1)) {
-                    System.out.println("Choose a piece to promote to: QUEEN, ROOK, BISHOP, KNIGHT");
-                    String choice = scanner.nextLine().trim().toUpperCase();
-                    switch (choice) {
-                        case "QUEEN" -> promotionPiece = ChessPiece.PieceType.QUEEN;
-                        case "ROOK" -> promotionPiece = ChessPiece.PieceType.ROOK;
-                        case "BISHOP" -> promotionPiece = ChessPiece.PieceType.BISHOP;
-                        case "KNIGHT" -> promotionPiece = ChessPiece.PieceType.KNIGHT;
-                        default -> {
-                            return "Invalid promotion piece type.";
-                        }
-                    }
-                }
-            }
-
+        try {
             ChessMove move = new ChessMove(start, end, promotionPiece);
             ws.makeMove(authToken, currentGameData.gameID(), move);
             return "Move sent.";
         } catch (Exception e) {
             return "Error processing move: " + e.getMessage();
         }
+    }
+
+    private boolean isPawnPromotion(ChessPiece piece, int endRow) {
+        if (piece == null || piece.getPieceType() != ChessPiece.PieceType.PAWN) {
+            return false;
+        }
+        boolean isWhite = piece.getTeamColor() == ChessGame.TeamColor.WHITE;
+        return (isWhite && endRow == 8) || (!isWhite && endRow == 1);
+    }
+
+    private ChessPiece.PieceType getPromotionPieceIfApplicable(ChessPiece piece, int endRow, Scanner scanner) {
+        if (!isPawnPromotion(piece, endRow)) {
+            return null;
+        }
+
+        System.out.println("Choose a piece to promote to: QUEEN, ROOK, BISHOP, KNIGHT");
+        String choice = scanner.nextLine().trim().toUpperCase();
+
+        return switch (choice) {
+            case "QUEEN" -> ChessPiece.PieceType.QUEEN;
+            case "ROOK" -> ChessPiece.PieceType.ROOK;
+            case "BISHOP" -> ChessPiece.PieceType.BISHOP;
+            case "KNIGHT" -> ChessPiece.PieceType.KNIGHT;
+            default -> null;
+        };
     }
 
     private String resign() {
