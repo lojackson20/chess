@@ -49,24 +49,45 @@ public class Repl implements NotificationHandler {
         System.out.print("\n" + RESET_TEXT_COLOR + ">>> " + SET_TEXT_COLOR_MAGENTA);
     }
 
-    public void notify(String notification, ServerMessage.ServerMessageType type) {
-        if (type == ServerMessage.ServerMessageType.NOTIFICATION) {
-            Notification newNotification = new Gson().fromJson(notification, Notification.class);
-            String message = newNotification.message();
+    public void notify(String notification) {
+        Gson gson = new Gson();
+        ServerMessage baseMessage = gson.fromJson(notification, ServerMessage.class);
 
-
-        }
-
-        if (type == ServerMessage.ServerMessageType.LOAD_GAME) {
-            LoadGameMessage loadGameMessage = new Gson().fromJson(notification, LoadGameMessage.class);
+        if (baseMessage.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
+            Notification newNotification = gson.fromJson(notification, Notification.class);
+            System.out.print("\n" + SET_TEXT_COLOR_YELLOW + newNotification.message() + RESET_TEXT_COLOR);
+            printPrompt();
+        } else if (baseMessage.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
+            LoadGameMessage loadGameMessage = gson.fromJson(notification, LoadGameMessage.class);
             GameData gameData = loadGameMessage.gameData();
 
             boolean isWhitePerspective = client.getPlayerName().equals(gameData.whiteUsername());
             System.out.print("\n");
-            client.drawBoard(isWhitePerspective, loadGameMessage.gameData(), new ArrayList<>());
-            client.updateGameData(loadGameMessage.gameData());
+            client.drawBoard(isWhitePerspective, gameData, new ArrayList<>());
+            client.updateGameData(gameData);
+            printPrompt();
+        } else {
+            System.out.print("\n" + SET_TEXT_COLOR_RED + "Unknown message type received from server." + RESET_TEXT_COLOR);
             printPrompt();
         }
+//        if (type == ServerMessage.ServerMessageType.NOTIFICATION) {
+//            Notification newNotification = new Gson().fromJson(notification, Notification.class);
+//            String message = newNotification.message();
+//
+//
+//        }
+//
+//        if (type == ServerMessage.ServerMessageType.LOAD_GAME) {
+
+//        }
+//        LoadGameMessage loadGameMessage = new Gson().fromJson(notification, LoadGameMessage.class);
+//        GameData gameData = loadGameMessage.gameData();
+//
+//        boolean isWhitePerspective = client.getPlayerName().equals(gameData.whiteUsername());
+//        System.out.print("\n");
+//        client.drawBoard(isWhitePerspective, loadGameMessage.gameData(), new ArrayList<>());
+//        client.updateGameData(loadGameMessage.gameData());
+//        printPrompt();
 
 
     }
