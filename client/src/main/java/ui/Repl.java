@@ -3,6 +3,7 @@ import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import model.GameData;
 import ui.websocket.NotificationHandler;
+import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.Notification;
 import websocket.messages.ServerMessage;
@@ -65,6 +66,10 @@ public class Repl implements NotificationHandler {
             System.out.print("\n");
             client.drawBoard(isWhitePerspective, gameData, new ArrayList<>());
             client.updateGameData(gameData);
+            printPrompt();
+        } else if (baseMessage.getServerMessageType() == ServerMessage.ServerMessageType.ERROR) {
+            ErrorMessage errorMessage = gson.fromJson(notification, ErrorMessage.class);
+            System.out.print("\n" + SET_TEXT_COLOR_YELLOW + errorMessage.message() + RESET_TEXT_COLOR);
             printPrompt();
         } else {
             System.out.print("\n" + SET_TEXT_COLOR_RED + "Unknown message type received from server." + RESET_TEXT_COLOR);
