@@ -155,9 +155,6 @@ public class ChessClient {
 
             boolean isWhite = playerName.equals(currentGameData.whiteUsername());
             drawBoard(isWhite, currentGameData, highlightedPos);
-//            for (var move : legalMoves) {
-//                System.out.println(" -> " + move.getEndPosition().getRow() + "," + move.getEndPosition().getColumn());
-//            }
             return "Legal moves highlighted.";
         } catch (Exception e) {
             return "Error: " + e.getMessage();
