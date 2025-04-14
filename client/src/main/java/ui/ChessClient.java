@@ -1,6 +1,4 @@
 package ui;
-
-import java.sql.Array;
 import java.util.*;
 
 import chess.*;
@@ -75,10 +73,7 @@ public class ChessClient {
     }
 
     private String leave() throws DataAccessException {
-
         ws.leave(authToken, currentGameData.gameID());
-//        ws = null;
-
         currentGameData = null;
         inGame = false;
         return "You have left the game. Returning to main menu.";
@@ -317,14 +312,11 @@ public String listGames() throws DataAccessException {
             }
 
             try {
-                // Join game on server and get fresh GameData
                 GameData gameData = server.joinGame(authToken, new JoinGameRequest(authToken, color, gameID));
 
-                // Set game state
                 currentGameData = gameData;
                 inGame = true;
 
-                // Reconnect WebSocket and assign to field
                 ws = new WebSocketFacade(serverUrl, notificationHandler);
                 ws.connect(authToken, gameID);
 
@@ -374,7 +366,6 @@ public String listGames() throws DataAccessException {
                 - quit
                 - help
                 """;
-
     }
 
     private void assertSignedIn() throws DataAccessException {
@@ -382,7 +373,6 @@ public String listGames() throws DataAccessException {
             throw new DataAccessException("You must sign in", 400);
         }
     }
-
 
     public void drawBoard(boolean isWhitePerspective, GameData gameData, ArrayList<ChessPosition> highlighted) {
         ChessBoard board = gameData.game().getBoard();
@@ -428,7 +418,6 @@ public String listGames() throws DataAccessException {
             System.out.print("\n");
         }
     }
-
 
     public void printSquare(ChessPiece piece, ChessPosition position, ArrayList<ChessPosition> highlighted) {
         if ((position.getRow() + position.getColumn()) % 2 == 0) {
@@ -506,4 +495,3 @@ public String listGames() throws DataAccessException {
     }
 
 }
-
