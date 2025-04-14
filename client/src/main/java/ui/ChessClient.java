@@ -463,7 +463,3 @@ public String listGames() throws DataAccessException {
 
 }
 
-// better error message for signin that doesnt exist----***
-// error for reregistering ----***
-// better error message for when game doesnt exist
-// joining as an invalid color----***

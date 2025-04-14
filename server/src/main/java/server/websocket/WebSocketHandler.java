@@ -1,8 +1,3 @@
-//package server.websocket;
-//
-//public class WebSocketHandler {
-//    //
-//}
 package server.websocket;
 
 import chess.ChessGame;
