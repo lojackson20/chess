@@ -166,9 +166,10 @@ public class ChessClient {
         System.out.println("Enter position to highlight legal moves for (row col):\n");
         Scanner scanner = new Scanner(System.in);
         String input = scanner.nextLine();
-        String[] tokens = input.split(" ");
+        String[] tokens = input.trim().split(" ");
+
         if (tokens.length != 2) {
-            return "Invalid input format.";
+            return "Invalid input format. Please enter in the format: row colLetter (e.g., 2 e)";
         }
 
         try {
@@ -177,8 +178,16 @@ public class ChessClient {
             ChessPosition pos = new ChessPosition(row, col);
             ChessPiece piece = currentGameData.game().getBoard().getPiece(pos);
 
+            if (piece == null) {
+                return "There is no piece at that position.";
+            }
 
             ArrayList<ChessMove> legalMoves = (ArrayList<ChessMove>) currentGameData.game().validMoves(pos);
+
+            if (legalMoves.isEmpty()) {
+                return "This piece has no legal moves.";
+            }
+
             ArrayList<ChessPosition> highlightedPos = new ArrayList<>();
             for (ChessMove move : legalMoves) {
                 highlightedPos.add(move.getEndPosition());
@@ -187,6 +196,8 @@ public class ChessClient {
             boolean isWhite = playerName.equals(currentGameData.whiteUsername());
             drawBoard(isWhite, currentGameData, highlightedPos);
             return "Legal moves highlighted.";
+        } catch (NumberFormatException e) {
+            return "Invalid row number.";
         } catch (Exception e) {
             return "Error: " + e.getMessage();
         }
@@ -215,7 +226,6 @@ public class ChessClient {
 
                 this.ws.connect(authToken, gameID);
 
-//                drawBoard(true, gameData, new ArrayList<>());
                 return "You are now observing game " + gameIndex;
             } catch (Exception e) {
                 return "Failed to observe game. Please try again.";
@@ -237,7 +247,6 @@ public class ChessClient {
             return "user is already taken";
         }
         return "Expected: register <username> <password> <email>";
-//        throw new DataAccessException("Expected: register <username> <password> <email>", 400);
     }
 
     public String signIn(String... params) throws DataAccessException {
@@ -253,9 +262,7 @@ public class ChessClient {
             return "User doesn't exist or wrong password, try registering";
         }
         return "Expected: signin <username> <password>";
-//        throw new DataAccessException("Expected: signin <username> <password>", 400);
     }
-
 
 public String listGames() throws DataAccessException {
     assertSignedIn();
@@ -279,7 +286,6 @@ public String listGames() throws DataAccessException {
     }
     return listedGame.toString();
 }
-
     public String createGame(String... params) throws DataAccessException {
         assertSignedIn();
         if (params.length >= 1) {
@@ -300,7 +306,6 @@ public String listGames() throws DataAccessException {
             } catch (NumberFormatException e) {
                 return "Invalid game number. Please enter a valid number from the list.";
             }
-
             Integer gameID = gameIndexMap.get(gameIndex);
             if (gameID == null) {
                 return "That game doesn't exist! Please list games again.";
@@ -313,13 +318,10 @@ public String listGames() throws DataAccessException {
 
             try {
                 GameData gameData = server.joinGame(authToken, new JoinGameRequest(authToken, color, gameID));
-
                 currentGameData = gameData;
                 inGame = true;
-
                 ws = new WebSocketFacade(serverUrl, notificationHandler);
                 ws.connect(authToken, gameID);
-
                 return "You joined game " + gameIndex + " as " + color;
             } catch (DataAccessException e) {
                 return "Failed to join game: Game is full or invalid request.";
@@ -481,11 +483,9 @@ public String listGames() throws DataAccessException {
         }
         return "hello";
     }
-
     public void updateGameData (GameData gameData){
         currentGameData = gameData;
     }
-
     private int columnLetterToNumber(String col) {
         col = col.toLowerCase();
         if (col.length() != 1 || col.charAt(0) < 'a' || col.charAt(0) > 'h') {
@@ -493,5 +493,4 @@ public String listGames() throws DataAccessException {
         }
         return col.charAt(0) - 'a' + 1;
     }
-
 }

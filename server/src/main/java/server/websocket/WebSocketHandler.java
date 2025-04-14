@@ -93,10 +93,13 @@ public class WebSocketHandler {
             }
             return;
         }
-        
+
         if (!game.stillPlaying()) {
-            ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Game over, you can't move");
-            session.getRemote().sendString(new Gson().toJson(error));
+            if (session != null) {
+                ErrorMessage error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Game over, you can't move");
+                session.getRemote().sendString(new Gson().toJson(error));
+            }
+            return;
         }
 
         AuthData authData = dataAccess.getAuth(authToken);
@@ -137,9 +140,12 @@ public class WebSocketHandler {
         LoadGameMessage loadMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
         connections.broadcastToGame(gameID, loadMessage);
 
-        String moveMessage = username + " moved from " + move.getStartPosition().toString() + " to " + move.getEndPosition().toString();
+        String moveMessage = username + " moved from " + move.getStartPosition() + " to " + move.getEndPosition();
         Notification moveNotification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, moveMessage);
-        connections.broadcastExcept(authData.authToken(), gameID, moveNotification);
+        connections.broadcastExcept(authToken, gameID, moveNotification);
+
+        ChessGame.TeamColor nowInDanger = chessGame.getTeamTurn();
+        String dangerUsername = (nowInDanger == ChessGame.TeamColor.WHITE) ? game.whiteUsername() : game.blackUsername();
 
         GameData gameData = new GameData(
                 game.gameID(),
@@ -149,18 +155,31 @@ public class WebSocketHandler {
                 game.game(),
                 false
         );
-        if (chessGame.isInCheckmate(chessGame.getTeamTurn())) {
-            Notification checkmate = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Checkmate!");
+        if (chessGame.isInCheckmate(nowInDanger)) {
+            Notification checkmate = new Notification(
+                    ServerMessage.ServerMessageType.NOTIFICATION,
+                    "Checkmate! " + nowInDanger + " (" + dangerUsername + ") loses."
+            );
             connections.broadcastToGame(gameID, checkmate);
-            GameData newGameData = gameData;
-            dataAccess.updateGame(newGameData);
-        } else if (chessGame.isInStalemate(chessGame.getTeamTurn())) {
-            Notification stalemate = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Stalemate.");
+
+            GameData updatedGame = gameData;
+            dataAccess.updateGame(updatedGame);
+
+        } else if (chessGame.isInStalemate(nowInDanger)) {
+            Notification stalemate = new Notification(
+                    ServerMessage.ServerMessageType.NOTIFICATION,
+                    "Stalemate! " + nowInDanger + " (" + dangerUsername + ") has no legal moves."
+            );
             connections.broadcastToGame(gameID, stalemate);
-            GameData newGameData = gameData;
-            dataAccess.updateGame(newGameData);
-        } else if (chessGame.isInCheck(chessGame.getTeamTurn())) {
-            Notification check = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, "Check!");
+
+            GameData updatedGame = gameData;
+            dataAccess.updateGame(updatedGame);
+
+        } else if (chessGame.isInCheck(nowInDanger)) {
+            Notification check = new Notification(
+                    ServerMessage.ServerMessageType.NOTIFICATION,
+                    "Check! " + nowInDanger + " (" + dangerUsername + ") is in check."
+            );
             connections.broadcastToGame(gameID, check);
         }
     }
